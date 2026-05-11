@@ -109,7 +109,7 @@ class Pathfinding:
         g_score = {(stx, sty): 0}
         
         iterations = 0
-        max_iterations = 1000
+        max_iterations = 5000
         
         while open_set and iterations < max_iterations:
             iterations += 1

@@ -36,6 +36,9 @@ class DummyEnemy(Entity):
 
     def update(self, dt: float) -> None:
         super().update(dt)
+        
+        # Clear hit set for contact damage to allow re-hitting after iframes expire
+        self.attack_box.hit_set.clear()
 
         # Flash red-white briefly on damage (set by take_damage override)
         if self._flash_timer > 0:

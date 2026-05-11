@@ -125,7 +125,7 @@ class PlayState(State):
 
         # Initialize new AI system
         pathfinding = Pathfinding(self.world_manager)
-        self.ai_controller = AIController(self.player, self.world_manager, pathfinding)
+        self.ai_controller = AIController(self.player, self.world_manager, pathfinding, self.mining_system)
         
         # Keep old auto_controller for backward compatibility (if needed)
         self.auto_controller = AutoPlayerController(self.player, self.world_manager)
@@ -301,6 +301,7 @@ class PlayState(State):
                     self.visible_ores,
                     self.npcs,
                     self.portal_manager.portals,
+                    projectile_pool=self.projectile_pool,
                     current_hazard_zone=self.current_hazard_zone,
                     current_biome=self.world_manager.current_world_id,
                     auto_mine=self.engine.auto_mine,
@@ -431,6 +432,8 @@ class PlayState(State):
         self.camera.update(self.player, scaled_dt)
 
         if self.player.is_dead:
+            # You could add a game over delay or effect here
+            print("GAME OVER: Player health reached 0.")
             self.engine.state_machine.change_state("Menu")
 
     def render(self, surface: pygame.Surface) -> None:

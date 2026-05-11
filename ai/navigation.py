@@ -31,7 +31,7 @@ class NavigationController:
         self.path_index: int = 0
         self.path_dirty: bool = False
         self.path_recalc_cooldown: float = 0.0
-        self.path_recalc_interval: float = 1.0  # Recalc every 1 second
+        self.path_recalc_interval: float = 0.3  # Recalc every 0.3 seconds
         
         # Performance
         self.last_recalc_pos: Tuple[float, float] = (0.0, 0.0)

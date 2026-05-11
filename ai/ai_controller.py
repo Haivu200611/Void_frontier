@@ -30,10 +30,11 @@ class AIController:
     6. Reevaluate: Check if goal still valid
     """
     
-    def __init__(self, player, world_manager, pathfinding):
+    def __init__(self, player, world_manager, pathfinding, mining_system=None):
         self.player = player
         self.world_manager = world_manager
         self.pathfinding = pathfinding
+        self.mining_system = mining_system
         
         # Core AI systems
         self.blackboard = AIBlackboard(player, world_manager, scan_radius=800.0)
@@ -73,6 +74,7 @@ class AIController:
     
     def update(self, dt: float, 
               enemies: List, items: List, ores: List, npcs: List, portals: List,
+              projectile_pool=None,
               current_hazard_zone: Optional[Tuple] = None,
               current_biome: str = "unknown",
               auto_mine=False, auto_combat_entities=False, auto_combat_boss=False) -> None:
@@ -104,10 +106,10 @@ class AIController:
             self.last_decision_time = 0.0
         
         # === PLAN ===
-        self._plan_action()
+        self._plan_action(dt)
         
         # === EXECUTE ===
-        self._execute_action()
+        self._execute_action(dt, projectile_pool)
         
         # === REEVALUATE ===
         self._reevaluate_goal()
@@ -186,7 +188,7 @@ class AIController:
             self.goal_manager.add_goal(goal)
         
         # Update goal manager
-        self.goal_manager.update(0.016)
+        self.goal_manager.update(0.016) # Use consistent dt
         
         # Get current goal
         current_goal = self.goal_manager.current_goal
@@ -195,7 +197,7 @@ class AIController:
             if current_goal.target:
                 self.attack_target = current_goal.target
     
-    def _plan_action(self) -> None:
+    def _plan_action(self, dt: float) -> None:
         """Plan path/action for current goal"""
         goal = self.goal_manager.current_goal
         if not goal:
@@ -205,26 +207,26 @@ class AIController:
         
         # Different planning for different goal types
         if goal.goal_type == GoalType.EXPLORE:
-            self._plan_explore()
+            self._plan_explore(dt)
         elif goal.goal_type == GoalType.MINE:
-            self._plan_mine(goal)
+            self._plan_mine(goal, dt)
         elif goal.goal_type == GoalType.COMBAT:
-            self._plan_combat(goal)
+            self._plan_combat(goal, dt)
         elif goal.goal_type == GoalType.HEAL:
-            self._plan_heal(goal)
+            self._plan_heal(goal, dt)
         elif goal.goal_type == GoalType.ESCAPE:
-            self._plan_escape(goal)
+            self._plan_escape(goal, dt)
         elif goal.goal_type == GoalType.LOOT:
-            self._plan_loot(goal)
+            self._plan_loot(goal, dt)
         elif goal.goal_type == GoalType.TRADE:
-            self._plan_trade(goal)
+            self._plan_trade(goal, dt)
         elif goal.goal_type == GoalType.SURVIVE:
-            self._plan_survive(goal)
+            self._plan_survive(goal, dt)
         else:
             self.player.velocity_x = 0
             self.player.velocity_y = 0
     
-    def _plan_explore(self) -> None:
+    def _plan_explore(self, dt: float) -> None:
         """Plan exploration path using DFS"""
         # Use DFS to find next exploration frontier
         next_target = self.dfs_explorer.get_next_exploration_target(
@@ -236,32 +238,44 @@ class AIController:
         if not next_target:
             # Random exploration if no target found
             import random
-            angle = random.random() * 6.28
-            distance = 300
-            next_target = (
-                self.player.x + distance * (angle ** 0.5),
-                self.player.y + distance * ((1 - angle) ** 0.5)
-            )
+            import math
+            for _ in range(10): # Try 10 times to find walkable random target
+                angle = random.random() * 2 * math.pi
+                distance = 300 + random.random() * 200
+                tx = (self.player.x + math.cos(angle) * distance)
+                ty = (self.player.y + math.sin(angle) * distance)
+                
+                # Check if walkable
+                itx, ity = int(tx // TILE_SIZE), int(ty // TILE_SIZE)
+                if self.pathfinding.is_walkable(itx, ity):
+                    next_target = (tx, ty)
+                    break
+            
+            if not next_target:
+                # Fallback to current pos if nothing found (rare)
+                next_target = (self.player.x, self.player.y)
         
         # Plan path using A* (via navigation.update_path)
         self.navigation.update_path(
             (self.player.x, self.player.y),
             next_target,
             avoid_hazards=True,
-            avoid_enemies=False
+            avoid_enemies=False,
+            dt=dt
         )
     
-    def _plan_mine(self, goal) -> None:
+    def _plan_mine(self, goal, dt: float) -> None:
         """Plan mining approach"""
         if goal.target_pos:
             self.navigation.update_path(
                 (self.player.x, self.player.y),
                 goal.target_pos,
                 avoid_hazards=True,
-                avoid_enemies=True
+                avoid_enemies=True,
+                dt=dt
             )
     
-    def _plan_combat(self, goal) -> None:
+    def _plan_combat(self, goal, dt: float) -> None:
         """Plan combat engagement using A* for positioning"""
         # Combat planning handled by CombatAI during execution.
         # We use A* (via navigation) to maintain a path toward the target for fallback.
@@ -270,10 +284,11 @@ class AIController:
                 (self.player.x, self.player.y),
                 goal.target_pos,
                 avoid_hazards=True,
-                avoid_enemies=False
+                avoid_enemies=False,
+                dt=dt
             )
     
-    def _plan_heal(self, goal) -> None:
+    def _plan_heal(self, goal, dt: float) -> None:
         """Plan to reach safe zone or healing item"""
         # Find safe zone
         safe_zones = self.danger_map.get_safe_zones(
@@ -286,10 +301,11 @@ class AIController:
                 (self.player.x, self.player.y),
                 safe_zones[0],
                 avoid_hazards=True,
-                avoid_enemies=True
+                avoid_enemies=True,
+                dt=dt
             )
     
-    def _plan_escape(self, goal) -> None:
+    def _plan_escape(self, goal, dt: float) -> None:
         """Plan escape from danger"""
         # Get escape direction
         escape_dx, escape_dy = self.danger_map.get_escape_direction(
@@ -307,30 +323,33 @@ class AIController:
             (self.player.x, self.player.y),
             escape_target,
             avoid_hazards=True,
-            avoid_enemies=True
+            avoid_enemies=True,
+            dt=dt
         )
     
-    def _plan_loot(self, goal) -> None:
+    def _plan_loot(self, goal, dt: float) -> None:
         """Plan to reach loot"""
         if goal.target_pos:
             self.navigation.update_path(
                 (self.player.x, self.player.y),
                 goal.target_pos,
                 avoid_hazards=False,
-                avoid_enemies=False
+                avoid_enemies=False,
+                dt=dt
             )
     
-    def _plan_trade(self, goal) -> None:
+    def _plan_trade(self, goal, dt: float) -> None:
         """Plan to reach trader"""
         if goal.target_pos:
             self.navigation.update_path(
                 (self.player.x, self.player.y),
                 goal.target_pos,
                 avoid_hazards=True,
-                avoid_enemies=True
+                avoid_enemies=True,
+                dt=dt
             )
     
-    def _plan_survive(self, goal) -> None:
+    def _plan_survive(self, goal, dt: float) -> None:
         """Plan for survival needs"""
         # Find safe zone or resource based on need
         if goal.survival_type == "oxygen":
@@ -343,10 +362,11 @@ class AIController:
                     (self.player.x, self.player.y),
                     safe_zones[0],
                     avoid_hazards=True,
-                    avoid_enemies=True
+                    avoid_enemies=True,
+                    dt=dt
                 )
     
-    def _execute_action(self) -> None:
+    def _execute_action(self, dt: float, projectile_pool=None) -> None:
         """Execute planned movement and actions"""
         # Priority 1: Survival (use consumables)
         self.survival_ai.manage_survival(self.player, getattr(self.player, 'inventory', None))
@@ -357,16 +377,18 @@ class AIController:
         immediate_threat = self.danger_map.global_danger_level > 0.2 and len(self._last_seen_enemies) > 0
 
         if in_combat_mode or immediate_threat:
-            vx, vy = self.combat_ai.execute_combat(self._last_seen_enemies)
+            vx, vy = self.combat_ai.execute_combat(self._last_seen_enemies, projectile_pool)
             self.player.velocity_x = vx
             self.player.velocity_y = vy
             return
 
         # Priority 3: Mining
-        if goal and goal.goal_type == GoalType.MINE and self.mining_ai:
-            did_mine = self.mining_ai.execute_mining(self.player, getattr(self, 'world_manager', None), self.dfs_explorer, self.navigation)
+        if goal and goal.goal_type == GoalType.MINE and self.mining_ai and self.mining_system:
+            did_mine = self.mining_ai.execute_mining(self.player, self.world_manager, self.mining_system, goal)
             if did_mine:
                 # Mining action performed; stop movement this frame
+                self.player.velocity_x = 0
+                self.player.velocity_y = 0
                 return
 
         # Fallback: Follow navigation path
@@ -384,6 +406,22 @@ class AIController:
                 speed = self.player.base_speed * self.player.status_speed_multiplier
                 self.player.velocity_x = (dx / dist) * speed
                 self.player.velocity_y = (dy / dist) * speed
+        else:
+            # No waypoint - if we have a target_pos, try moving directly if close
+            if goal and goal.target_pos:
+                gdx = goal.target_pos[0] - self.player.x
+                gdy = goal.target_pos[1] - self.player.y
+                gdist = (gdx * gdx + gdy * gdy) ** 0.5
+                if gdist > 20:
+                    speed = self.player.base_speed * self.player.status_speed_multiplier
+                    self.player.velocity_x = (gdx / gdist) * speed
+                    self.player.velocity_y = (gdy / gdist) * speed
+                else:
+                    self.player.velocity_x = 0
+                    self.player.velocity_y = 0
+            else:
+                self.player.velocity_x = 0
+                self.player.velocity_y = 0
         
         # Handle combat (legacy/fallback)
         if self.attack_target:

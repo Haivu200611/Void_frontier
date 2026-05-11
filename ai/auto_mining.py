@@ -16,28 +16,47 @@ class AutoMining:
         self.mining_cooldown = 0.0
         self.target_ore = None
 
-    def execute_mining(self, player, world_manager, dfs_explorer, navigation) -> bool:
+    def execute_mining(self, player, world_manager, mining_system, goal) -> bool:
         """
-        Executes mining logic using DFS for exploration and A* for target approach.
-        Returns True if a mining action was performed.
+        Executes mining logic.
+        Checks if player is near the goal's target ore and triggers mining damage.
         """
-        # 1. Find nearest ore using BFS (via navigation/ai_controller)
-        # In this architecture, the AIController already set a MINE goal and target_pos
-        # We use the navigation system which implements A* to get to that target.
+        if not goal or not goal.target:
+            return False
+            
+        target_ore = goal.target
         
-        # Check if we are close enough to mine
-        # We'll check if we're near any ore in the world
-        # Since we don't have a direct list of ores here, we'll check the distance to the target_pos
-        # provided by the goal manager in AIController.
+        # Check if ore is already dead
+        if getattr(target_ore, 'is_dead', False):
+            return False
+            
+        # Calculate distance to target ore
+        dist = ((target_ore.x - player.x)**2 + (target_ore.y - player.y)**2)**0.5
         
-        # For the sake of the AI loop, if we are in "MINE" state and near target,
-        # we trigger the mining action.
-        
-        # We simulate the mining action if we are within mining range (e.g., 60 pixels)
-        # This is where we'd integrate with MiningSystem
-        
-        # Since we can't easily access the full world state here without a reference,
-        # we'll return False unless we have a specific target and are close.
+        # Mining range (slightly less than MiningSystem's range for stability)
+        if dist <= 110.0:
+            # Check cooldown in MiningSystem
+            if mining_system.cooldown_timer <= 0:
+                # Simulate mining hit
+                # We need to resolve tool stats manually or use try_mine logic
+                # For simplicity, we'll use base damage if we can't easily access tool stats
+                
+                tool_stack = player.inventory.get_active_tool_stack() if hasattr(player, "inventory") else None
+                stats = mining_system._resolve_tool_stats(tool_stack.item_id if tool_stack else None)
+                
+                damage = mining_system.base_damage * stats.mining_speed * stats.efficiency
+                mined = target_ore.take_mining_damage(damage, stats.mining_power)
+                mining_system.cooldown_timer = max(0.08, stats.cooldown)
+                
+                if mined:
+                    mining_system._consume_tool_durability(player, tool_stack)
+                    # Feedback for AI
+                    if target_ore.is_dead:
+                        mining_system._set_feedback(f"Mined {target_ore.ore_type}")
+                    else:
+                        mining_system._set_feedback(f"Mining {target_ore.ore_type}...")
+                    return True
+                    
         return False
 
     def find_best_ore(self, player_pos: Tuple[float, float], 

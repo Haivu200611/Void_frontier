@@ -74,6 +74,9 @@ class Entity:
 
     def update(self, dt: float) -> None:
         self.handle_movement(dt)
+        if self.health <= 0:
+            self.health = 0
+            self.is_dead = True
 
     # ------------------------------------------------------------------
     # Combat

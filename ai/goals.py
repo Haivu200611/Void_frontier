@@ -184,9 +184,24 @@ class GoalManager:
         return goal_class(**kwargs)
     
     def add_goal(self, goal: Goal) -> None:
-        """Add goal to active list"""
+        """Add goal to active list, avoiding duplicates of same type and target"""
+        # Check for existing goal of same type
+        for existing in self.active_goals:
+            if existing.goal_type == goal.goal_type:
+                if existing.target == goal.target or (not existing.target and not goal.target):
+                    # Update priority/duration instead of adding duplicate
+                    existing.priority = max(existing.priority, goal.priority)
+                    existing.target_pos = goal.target_pos
+                    existing.duration = 0 # Reset duration
+                    return
+                    
         if len(self.active_goals) < self.max_goals:
             self.active_goals.append(goal)
+        else:
+            # Replace lowest priority goal if new one is higher
+            self.active_goals.sort(key=lambda g: g.get_priority_score())
+            if goal.priority > self.active_goals[0].get_priority_score():
+                self.active_goals[0] = goal
     
     def remove_goal(self, goal: Goal) -> None:
         """Remove goal from active list"""
