@@ -1,0 +1,42 @@
+{
+    "worlds": {
+        "toxic_plains": {
+            "order": 1,
+            "boss": "mecha_beast",
+            "unlock_requirement": null,
+            "reward": "battery_core",
+            "next_world": "crystal_desert"
+        },
+        "crystal_desert": {
+            "order": 2,
+            "boss": "crystal_titan",
+            "unlock_requirement": "battery_core",
+            "reward": "artifact_1",
+            "next_world": "fungal_cave"
+        },
+        "fungal_cave": {
+            "order": 3,
+            "boss": "toxic_worm",
+            "unlock_requirement": "artifact_1",
+            "reward": "artifact_2",
+            "next_world": "void_ruins"
+        },
+        "void_ruins": {
+            "order": 4,
+            "boss": "void_guardian",
+            "unlock_requirement": "artifact_2",
+            "reward": "artifact_3",
+            "next_world": null
+        }
+    },
+    "artifacts": {
+        "artifact_1": {"name": "Crystal Heart", "description": "Ancient energy core from the desert"},
+        "artifact_2": {"name": "Fungal Spore", "description": "Sentient spore from the deep caves"},
+        "artifact_3": {"name": "Void Shard", "description": "Fragment of the void reality"}
+    },
+    "endgame": {
+        "required_artifacts": ["artifact_1", "artifact_2", "artifact_3"],
+        "final_item": "ship_repair_kit",
+        "final_location": "toxic_plains"
+    }
+}

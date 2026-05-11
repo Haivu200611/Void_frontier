@@ -1,0 +1,26 @@
+import pygame
+
+# Screen
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
+FPS = 60
+TITLE = "VOID FRONTIER"
+
+# Colors (Placeholder palette)
+COLOR_BG = (20, 20, 25)
+COLOR_PLAYER = (50, 200, 100)
+COLOR_ENEMY = (200, 50, 50)
+COLOR_BOSS = (150, 50, 200)
+COLOR_NPC = (200, 200, 50)
+COLOR_ORE = (120, 120, 120)
+COLOR_PORTAL = (50, 200, 200)
+COLOR_TEXT = (220, 220, 220)
+COLOR_DEBUG = (255, 0, 255)
+
+# Game settings
+TILE_SIZE = 64
+DEBUG_MODE = False
+
+# Sound settings
+MUSIC_VOLUME = 0.5
+SFX_VOLUME = 0.7

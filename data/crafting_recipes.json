@@ -1,0 +1,106 @@
+[
+  {
+    "id": "recipe_medkit_small",
+    "name": "Small Medkit",
+    "category": "consumables",
+    "result": {"item_id": "medkit_small", "count": 1},
+    "ingredients": {
+      "item_iron_ore": 1,
+      "item_toxic_ore": 1
+    }
+  },
+  {
+    "id": "recipe_oxygen_pack",
+    "name": "Oxygen Pack",
+    "category": "consumables",
+    "result": {"item_id": "oxygen_pack", "count": 1},
+    "ingredients": {
+      "item_crystal_ore": 1,
+      "item_scrap_metal": 1
+    }
+  },
+  {
+    "id": "recipe_food_pack",
+    "name": "Food Pack",
+    "category": "consumables",
+    "result": {"item_id": "food_pack", "count": 1},
+    "ingredients": {
+      "item_toxic_ore": 1,
+      "item_scrap_metal": 1
+    }
+  },
+  {
+    "id": "recipe_light_ammo",
+    "name": "Light Ammo x20",
+    "category": "ammo",
+    "result": {"item_id": "ammo_light", "count": 20},
+    "ingredients": {
+      "item_iron_ore": 2,
+      "item_scrap_metal": 1
+    }
+  },
+  {
+    "id": "recipe_plasma_ammo",
+    "name": "Plasma Cells x10",
+    "category": "ammo",
+    "result": {"item_id": "ammo_plasma", "count": 10},
+    "ingredients": {
+      "item_crystal_ore": 2,
+      "item_void_fragment": 1
+    }
+  },
+  {
+    "id": "recipe_crystal_pickaxe",
+    "name": "Crystal Pickaxe",
+    "category": "tool_upgrades",
+    "result": {"item_id": "tool_crystal_pickaxe", "count": 1},
+    "ingredients": {
+      "tool_iron_pickaxe": 1,
+      "item_crystal_ore": 8,
+      "item_scrap_metal": 4
+    }
+  },
+  {
+    "id": "recipe_plasma_drill",
+    "name": "Plasma Drill",
+    "category": "tool_upgrades",
+    "result": {"item_id": "tool_plasma_drill", "count": 1},
+    "ingredients": {
+      "tool_crystal_pickaxe": 1,
+      "item_void_fragment": 4,
+      "item_battery_core": 2
+    }
+  },
+  {
+    "id": "recipe_upgrade_mining_rig_mk2",
+    "name": "Mining Rig MK2",
+    "category": "upgrades",
+    "result": {"item_id": "upgrade_mining_rig_mk2", "count": 1},
+    "ingredients": {
+      "item_crystal_ore": 10,
+      "item_void_fragment": 2
+    }
+  },
+  {
+    "id": "recipe_plasma_gun",
+    "name": "Plasma Gun",
+    "category": "weapon_upgrades",
+    "result": {"item_id": "weapon_plasma_gun", "count": 1},
+    "ingredients": {
+      "weapon_basic_gun": 1,
+      "item_crystal_ore": 12,
+      "item_scrap_metal": 6
+    }
+  },
+  {
+    "id": "recipe_laser_rifle",
+    "name": "Laser Rifle",
+    "category": "weapon_upgrades",
+    "result": {"item_id": "weapon_laser_rifle", "count": 1},
+    "ingredients": {
+      "weapon_plasma_gun": 1,
+      "item_void_fragment": 8,
+      "item_battery_core": 3
+    }
+  }
+]

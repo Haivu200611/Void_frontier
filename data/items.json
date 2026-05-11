@@ -1,0 +1,300 @@
+{
+  "item_iron_ore": {
+    "id": "item_iron_ore",
+    "name": "Iron Ore",
+    "description": "Raw iron chunk mined from old asteroid crust.",
+    "rarity": "Common",
+    "stack_size": 64,
+    "max_stack": 64,
+    "value": 5,
+    "type": "material"
+  },
+  "item_crystal_ore": {
+    "id": "item_crystal_ore",
+    "name": "Crystal Ore",
+    "description": "Dense crystal ore with unstable energy.",
+    "rarity": "Uncommon",
+    "stack_size": 64,
+    "max_stack": 64,
+    "value": 14,
+    "type": "material"
+  },
+  "item_toxic_ore": {
+    "id": "item_toxic_ore",
+    "name": "Toxic Ore",
+    "description": "Corrosive ore used in hazardous chemical crafting.",
+    "rarity": "Uncommon",
+    "stack_size": 64,
+    "max_stack": 64,
+    "value": 12,
+    "type": "material"
+  },
+  "item_void_fragment": {
+    "id": "item_void_fragment",
+    "name": "Void Fragment",
+    "description": "Fragment of collapsed space-time.",
+    "rarity": "Epic",
+    "stack_size": 16,
+    "max_stack": 16,
+    "value": 80,
+    "type": "crafting_resource"
+  },
+  "item_scrap_metal": {
+    "id": "item_scrap_metal",
+    "name": "Scrap Metal",
+    "description": "Recovered ship alloy suitable for repairs.",
+    "rarity": "Common",
+    "stack_size": 64,
+    "max_stack": 64,
+    "value": 4,
+    "type": "crafting_resource"
+  },
+  "item_battery_core": {
+    "id": "item_battery_core",
+    "name": "Battery Core",
+    "description": "High density core used to stabilize portal systems.",
+    "rarity": "Rare",
+    "stack_size": 8,
+    "max_stack": 8,
+    "value": 40,
+    "type": "crafting_resource"
+  },
+  "medkit_small": {
+    "id": "medkit_small",
+    "name": "Small Medkit",
+    "description": "Restores 25 HP.",
+    "rarity": "Common",
+    "stack_size": 10,
+    "max_stack": 10,
+    "value": 20,
+    "type": "consumable",
+    "consumable_effects": {
+      "heal": 25,
+      "cooldown": 2.5
+    }
+  },
+  "medkit_large": {
+    "id": "medkit_large",
+    "name": "Large Medkit",
+    "description": "Restores 60 HP.",
+    "rarity": "Uncommon",
+    "stack_size": 5,
+    "max_stack": 5,
+    "value": 45,
+    "type": "consumable",
+    "consumable_effects": {
+      "heal": 60,
+      "cooldown": 4.0
+    }
+  },
+  "oxygen_pack": {
+    "id": "oxygen_pack",
+    "name": "Oxygen Pack",
+    "description": "Restores 45 oxygen.",
+    "rarity": "Common",
+    "stack_size": 10,
+    "max_stack": 10,
+    "value": 25,
+    "type": "consumable",
+    "consumable_effects": {
+      "oxygen": 45,
+      "cooldown": 2.0
+    }
+  },
+  "food_pack": {
+    "id": "food_pack",
+    "name": "Food Pack",
+    "description": "Restores 35 hunger.",
+    "rarity": "Common",
+    "stack_size": 10,
+    "max_stack": 10,
+    "value": 15,
+    "type": "consumable",
+    "consumable_effects": {
+      "hunger": 35,
+      "cooldown": 1.8
+    }
+  },
+  "ammo_light": {
+    "id": "ammo_light",
+    "name": "Light Ammo",
+    "description": "Basic ammunition for compact weapons.",
+    "rarity": "Common",
+    "stack_size": 120,
+    "max_stack": 120,
+    "value": 2,
+    "type": "ammo"
+  },
+  "ammo_plasma": {
+    "id": "ammo_plasma",
+    "name": "Plasma Cell",
+    "description": "Compressed plasma ammunition cell.",
+    "rarity": "Uncommon",
+    "stack_size": 80,
+    "max_stack": 80,
+    "value": 6,
+    "type": "ammo"
+  },
+  "quest_artifact_alpha": {
+    "id": "quest_artifact_alpha",
+    "name": "Artifact Alpha",
+    "description": "Ancient key fragment for long-range portals.",
+    "rarity": "Rare",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 0,
+    "type": "quest_item"
+  },
+  "quest_artifact_beta": {
+    "id": "quest_artifact_beta",
+    "name": "Artifact Beta",
+    "description": "Ancient key fragment for long-range portals.",
+    "rarity": "Rare",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 0,
+    "type": "quest_item"
+  },
+  "quest_artifact_gamma": {
+    "id": "quest_artifact_gamma",
+    "name": "Artifact Gamma",
+    "description": "Final key fragment for void transition.",
+    "rarity": "Epic",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 0,
+    "type": "quest_item"
+  },
+  "tool_iron_pickaxe": {
+    "id": "tool_iron_pickaxe",
+    "name": "Iron Pickaxe",
+    "description": "Starter mining tool for low-hardness ore.",
+    "rarity": "Common",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 35,
+    "type": "tool",
+    "tool_stats": {
+      "mining_speed": 1.0,
+      "mining_power": 1,
+      "cooldown": 0.42,
+      "efficiency": 1.0,
+      "durability": 220
+    }
+  },
+  "tool_crystal_pickaxe": {
+    "id": "tool_crystal_pickaxe",
+    "name": "Crystal Pickaxe",
+    "description": "Refined tool with stronger bite and cleaner extraction.",
+    "rarity": "Uncommon",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 90,
+    "type": "tool",
+    "tool_stats": {
+      "mining_speed": 1.35,
+      "mining_power": 2,
+      "cooldown": 0.33,
+      "efficiency": 1.2,
+      "durability": 350
+    }
+  },
+  "tool_plasma_drill": {
+    "id": "tool_plasma_drill",
+    "name": "Plasma Drill",
+    "description": "High-tier drill with extreme penetration.",
+    "rarity": "Rare",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 180,
+    "type": "tool",
+    "tool_stats": {
+      "mining_speed": 1.85,
+      "mining_power": 3,
+      "cooldown": 0.24,
+      "efficiency": 1.45,
+      "durability": 520
+    }
+  },
+  "upgrade_mining_rig_mk2": {
+    "id": "upgrade_mining_rig_mk2",
+    "name": "Mining Rig MK2",
+    "description": "Permanent upgrade module for mining throughput.",
+    "rarity": "Rare",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 120,
+    "type": "upgrade"
+  },
+  "item_meteor_ore": {
+    "id": "item_meteor_ore",
+    "name": "Meteor Ore",
+    "description": "Dense ore harvested from fallen space debris. High value for traders.",
+    "rarity": "Rare",
+    "stack_size": 64,
+    "max_stack": 64,
+    "value": 25,
+    "type": "material"
+  },
+  "weapon_basic_gun": {
+    "id": "weapon_basic_gun",
+    "name": "Basic Gun",
+    "description": "Reliable kinetic sidearm. Low damage but steady fire.",
+    "rarity": "Common",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 45,
+    "type": "weapon",
+    "weapon_stats": {
+      "damage": 15,
+      "speed": 640,
+      "cooldown": 0.25,
+      "lifetime": 2.0,
+      "color": [0, 220, 255]
+    }
+  },
+  "weapon_plasma_gun": {
+    "id": "weapon_plasma_gun",
+    "name": "Plasma Gun",
+    "description": "Fires concentrated bolts of superheated gas.",
+    "rarity": "Uncommon",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 120,
+    "type": "weapon",
+    "weapon_stats": {
+      "damage": 28,
+      "speed": 750,
+      "cooldown": 0.35,
+      "lifetime": 1.8,
+      "color": [255, 100, 255]
+    }
+  },
+  "weapon_laser_rifle": {
+    "id": "weapon_laser_rifle",
+    "name": "Laser Rifle",
+    "description": "High-velocity precision beam emitter.",
+    "rarity": "Rare",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 250,
+    "type": "weapon",
+    "weapon_stats": {
+      "damage": 45,
+      "speed": 1200,
+      "cooldown": 0.6,
+      "lifetime": 1.5,
+      "color": [255, 50, 50]
+    }
+  },
+  "quest_ship_repair_kit": {
+    "id": "quest_ship_repair_kit",
+    "name": "Ship Repair Kit",
+    "description": "Essential components for ORION-7 navigation and engine repair.",
+    "rarity": "Legendary",
+    "stack_size": 1,
+    "max_stack": 1,
+    "value": 0,
+    "type": "quest_item"
+  }
+}

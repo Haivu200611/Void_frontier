@@ -1,0 +1,54 @@
+[
+  {
+    "id": "toxic_plains",
+    "name": "Toxic Plains",
+    "terrain_color": [64, 94, 58],
+    "enemy_types": ["dummy_enemy"],
+    "ore_types": [],
+    "ambient": {
+      "fog_color": [90, 120, 70],
+      "fog_strength": 0.15
+    },
+    "hazard_types": ["toxic_zone", "acid_pool"],
+    "resource_spawn_modifier": 0.0
+  },
+  {
+    "id": "crystal_desert",
+    "name": "Crystal Desert",
+    "terrain_color": [170, 154, 110],
+    "enemy_types": ["dummy_enemy"],
+    "ore_types": ["Iron Ore", "Crystal Ore", "Meteor Ore"],
+    "ambient": {
+      "fog_color": [190, 175, 140],
+      "fog_strength": 0.08
+    },
+    "hazard_types": ["radiation_zone", "lava"],
+    "resource_spawn_modifier": 1.15
+  },
+  {
+    "id": "fungal_cave",
+    "name": "Fungal Cave",
+    "terrain_color": [75, 70, 98],
+    "enemy_types": ["dummy_enemy"],
+    "ore_types": ["Toxic Ore", "Crystal Ore", "Meteor Ore"],
+    "ambient": {
+      "fog_color": [110, 95, 140],
+      "fog_strength": 0.18
+    },
+    "hazard_types": ["toxic_zone", "radiation_zone"],
+    "resource_spawn_modifier": 1.1
+  },
+  {
+    "id": "void_ruins",
+    "name": "Void Ruins",
+    "terrain_color": [56, 44, 82],
+    "enemy_types": ["dummy_enemy"],
+    "ore_types": [],
+    "ambient": {
+      "fog_color": [95, 70, 130],
+      "fog_strength": 0.22
+    },
+    "hazard_types": ["radiation_zone", "acid_pool", "lava"],
+    "resource_spawn_modifier": 0.0
+  }
+]
