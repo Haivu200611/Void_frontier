@@ -69,8 +69,9 @@ class AIController:
         self.mining_ai = AutoMining(self.player, self.memory)
         self.survival_ai = AutoSurvival(self.player)
         
-        # Hold last seen full enemy objects (populated each update)
+        # Hold last seen full enemy and ore objects (populated each update)
         self._last_seen_enemies: List = []
+        self._last_seen_ores: List = []
     
     def update(self, dt: float, 
               enemies: List, items: List, ores: List, npcs: List, portals: List,
@@ -96,8 +97,9 @@ class AIController:
         # === THINK ===
         self._update_memory(current_biome)
         self._update_danger_map(enemies, items)
-        # store full enemy list for combat AI
+        # store full enemy and ore list for combat AI and mining
         self._last_seen_enemies = enemies
+        self._last_seen_ores = ores
         
         # === DECIDE ===
         self.last_decision_time += dt
@@ -384,12 +386,20 @@ class AIController:
 
         # Priority 3: Mining
         if goal and goal.goal_type == GoalType.MINE and self.mining_ai and self.mining_system:
-            did_mine = self.mining_ai.execute_mining(self.player, self.world_manager, self.mining_system, goal)
-            if did_mine:
-                # Mining action performed; stop movement this frame
-                self.player.velocity_x = 0
-                self.player.velocity_y = 0
-                return
+            # Resolve observation to real object if needed
+            real_target = self._resolve_observation_to_object(goal.target, self._last_seen_ores)
+            if real_target:
+                # Update goal target for execute_mining (temporary or persistent)
+                original_target = goal.target
+                goal.target = real_target
+                did_mine = self.mining_ai.execute_mining(self.player, self.world_manager, self.mining_system, goal)
+                goal.target = original_target # Restore observation
+                
+                if did_mine:
+                    # Mining action performed; stop movement this frame
+                    self.player.velocity_x = 0
+                    self.player.velocity_y = 0
+                    return
 
         # Fallback: Follow navigation path
         waypoint = self.navigation.get_next_waypoint()
@@ -476,3 +486,28 @@ class AIController:
             "blackboard_info": self.blackboard.get_debug_info(),
             "danger_map_info": self.danger_map.get_debug_info(),
         }
+
+    def _resolve_observation_to_object(self, observation: Any, real_objects: List) -> Optional[Any]:
+        """Convert a blackboard observation back into a real entity object"""
+        if observation is None:
+            return None
+        
+        # If it's already an object with health (or similar entity trait), return it
+        if hasattr(observation, 'health') and not hasattr(observation, 'entity_id'):
+             return observation
+             
+        # If it has entity_id, it's an observation snapshot
+        entity_id = getattr(observation, 'entity_id', None)
+        if entity_id:
+            for obj in real_objects:
+                if id(obj) == entity_id:
+                    return obj
+        
+        # Fallback: find by position if close
+        if hasattr(observation, 'x') and hasattr(observation, 'y'):
+            for obj in real_objects:
+                dist = ((obj.x - observation.x)**2 + (obj.y - observation.y)**2)**0.5
+                if dist < 5.0:
+                    return obj
+                    
+        return None

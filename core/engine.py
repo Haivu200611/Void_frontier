@@ -41,12 +41,6 @@ class GameEngine:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F1:
                     self.debug_mode = not self.debug_mode
-                elif event.key == pygame.K_m:
-                    self.auto_mine = not self.auto_mine
-                elif event.key == pygame.K_k:
-                    self.auto_combat_entities = not self.auto_combat_entities
-                elif event.key == pygame.K_b:
-                    self.auto_combat_boss = not self.auto_combat_boss
                     
         self.state_machine.handle_events(events)
         

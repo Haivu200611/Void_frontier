@@ -94,7 +94,7 @@ class HazardManager:
             return None
 
         player.health = max(0.0, player.health - zone.spec.dps * dt)
-        if zone.spec.oxygen_drain > 0:
+        if zone.spec.oxygen_drain > 0 and not getattr(player, 'disable_survival_drain', False):
             player.oxygen = max(0.0, player.oxygen - zone.spec.oxygen_drain * dt)
             
         if zone.spec.status_effect:

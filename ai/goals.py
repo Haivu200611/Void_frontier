@@ -275,6 +275,7 @@ class GoalManager:
         nearby_npcs = environment_state.get("nearby_npcs", [])
         threat_level = environment_state.get("threat_level", 0.0)
         current_biome = environment_state.get("current_biome", "unknown")
+        player_pos = (self.player.x, self.player.y)
         
         # ESCAPE if critical threat
         if threat_level > 0.8 or (nearby_enemies and threat_level > 0.5):
@@ -312,46 +313,73 @@ class GoalManager:
             )
             suggestions.append(survive_goal)
         
-        # COMBAT if enemy nearby
-        if nearby_enemies and hp_ratio > 0.5 and threat_level < 0.8:
+        # COMBAT if enemy nearby or known in memory
+        if hp_ratio > 0.5 and threat_level < 0.8:
             auto_combat_entities = environment_state.get("auto_combat_entities", True)
             auto_combat_boss = environment_state.get("auto_combat_boss", True)
             
-            for enemy in nearby_enemies:
-                # Check if it's a boss
-                is_boss = hasattr(enemy, "phase") or "Boss" in str(type(enemy))
-                
-                if is_boss and not auto_combat_boss:
-                    continue
-                if not is_boss and not auto_combat_entities:
-                    continue
-                    
+            target_enemy = None
+            if nearby_enemies:
+                for enemy in nearby_enemies:
+                    is_boss = hasattr(enemy, "phase") or "Boss" in str(type(enemy))
+                    if is_boss and not auto_combat_boss: continue
+                    if not is_boss and not auto_combat_entities: continue
+                    target_enemy = enemy
+                    break
+            else:
+                # Search memory for enemy spawns if no enemies nearby
+                enemy_spawns = [loc for loc in self.blackboard.known_locations.values() 
+                               if loc.location_type == "enemy_spawn"]
+                if enemy_spawns:
+                    # Sort by distance
+                    enemy_spawns.sort(key=lambda l: ((l.x - player_pos[0])**2 + (l.y - player_pos[1])**2))
+                    target_enemy = enemy_spawns[0]
+
+            if target_enemy:
                 combat_goal = self.create_goal(
                     GoalType.COMBAT,
                     priority=0.8,
-                    target=enemy,
-                    target_pos=(enemy.x, enemy.y),
+                    target=target_enemy,
+                    target_pos=(target_enemy.x, target_enemy.y),
                     aggression_level=min(1.0, (1.0 - threat_level))
                 )
                 suggestions.append(combat_goal)
-                break  # Focus on one enemy
         
-        # MINE if ores nearby and inventory not full
-        if nearby_ores and not inventory_full and environment_state.get("auto_mine", True):
-            mine_goal = self.create_goal(
-                GoalType.MINE,
-                priority=0.7,
-                target=nearby_ores[0],
-                target_pos=(nearby_ores[0].x, nearby_ores[0].y),
-                ore_type=getattr(nearby_ores[0], 'ore_type', 'unknown')
-            )
-            suggestions.append(mine_goal)
+        # MINE if ores nearby or known in memory, and inventory not full
+        if not inventory_full and environment_state.get("auto_mine", True):
+            target_ore = None
+            if nearby_ores:
+                target_ore = nearby_ores[0]
+            else:
+                # Check memory for known ores if none nearby
+                known_ores = self.blackboard.get_nearest_ores(max_count=1)
+                if known_ores:
+                    target_ore = known_ores[0]
+            
+            if target_ore:
+                # Use 'resources' for memory objects, 'subtype' for observations
+                ore_type_val = getattr(target_ore, 'subtype', None)
+                if ore_type_val is None:
+                    ore_type_val = getattr(target_ore, 'resources', 'Iron Ore')
+                
+                mine_goal = self.create_goal(
+                    GoalType.MINE,
+                    priority=0.7,
+                    target=target_ore,
+                    target_pos=(target_ore.x, target_ore.y),
+                    ore_type=ore_type_val
+                )
+                suggestions.append(mine_goal)
         
         # LOOT if items nearby and inventory has space
         if nearby_items and not inventory_full:
+            # High priority if very close, otherwise moderate
+            item_dist = nearby_items[0].distance
+            loot_prio = 0.85 if item_dist < 150 else 0.65
+            
             loot_goal = self.create_goal(
                 GoalType.LOOT,
-                priority=0.5,
+                priority=loot_prio,
                 target=nearby_items[0],
                 target_pos=(nearby_items[0].x, nearby_items[0].y)
             )

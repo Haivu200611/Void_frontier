@@ -34,7 +34,7 @@ class Player(Entity):
         self.max_hunger = 100.0
         self.hunger = self.max_hunger
 
-        self.disable_survival_drain = False
+        self.disable_survival_drain = True
 
         atk_size = TILE_SIZE * 1.4
         self.attack_box = AttackBox(atk_size, atk_size, damage=20, knockback=8.0)

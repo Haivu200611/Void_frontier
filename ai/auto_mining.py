@@ -3,6 +3,7 @@ Auto Mining System
 Handles automatic ore detection, movement to ore, and mining execution
 """
 from typing import Tuple, Optional, List
+from entities.ore import OreType
 from settings import TILE_SIZE
 
 
@@ -66,7 +67,13 @@ class AutoMining:
             return None
             
         # Prioritize rare ores (Void > Crystal > Toxic > Iron)
-        priority = {"void": 4, "crystal": 3, "toxic": 2, "iron": 1}
+        priority = {
+            OreType.VOID: 5,
+            OreType.METEOR: 4,
+            OreType.CRYSTAL: 3,
+            OreType.TOXIC: 2,
+            OreType.IRON: 1
+        }
         
         best_ore = None
         best_score = -1.0

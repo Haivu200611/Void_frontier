@@ -5,6 +5,7 @@ Shared world knowledge & memory for AI decision-making
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Optional, Set
 from enum import Enum
+from entities.ore import OreType
 
 
 class TargetType(Enum):
@@ -28,6 +29,7 @@ class EntityObservation:
     distance: float
     health: float = None  # For enemies
     threat_level: float = 0.0  # For danger assessment
+    subtype: Optional[str] = None  # Specific type (e.g. ore type, item ID)
     last_seen_time: float = 0.0  # When we last saw this
 
 
@@ -91,7 +93,11 @@ class AIBlackboard:
         self.known_locations: Dict[Tuple[int, int], LocationMemory] = {}
         self.explored_chunks: Set[Tuple[int, int]] = set()
         self.discovered_ore_types: Dict[str, List[LocationMemory]] = {
-            "iron": [], "crystal": [], "toxic": [], "void": []
+            OreType.IRON: [], 
+            OreType.CRYSTAL: [], 
+            OreType.TOXIC: [], 
+            OreType.VOID: [],
+            OreType.METEOR: []
         }
         self.hazard_zones: List[LocationMemory] = []
         self.safe_zones: List[LocationMemory] = []
@@ -177,6 +183,7 @@ class AIBlackboard:
                     y=ore.y,
                     distance=self._distance(player_pos, (ore.x, ore.y)),
                     health=ore.health,
+                    subtype=getattr(ore, 'ore_type', 'Iron Ore'),
                     last_seen_time=self.last_update_time,
                 )
                 self.environment.nearby_ores.append(obs)
@@ -193,6 +200,7 @@ class AIBlackboard:
                     x=item.x,
                     y=item.y,
                     distance=self._distance(player_pos, (item.x, item.y)),
+                    subtype=getattr(item, 'item_id', None),
                     last_seen_time=self.last_update_time,
                 )
                 self.environment.nearby_items.append(obs)
@@ -254,6 +262,8 @@ class AIBlackboard:
             
             # Categorize
             if location_type == "ore_spawn" and resources:
+                if resources not in self.discovered_ore_types:
+                    self.discovered_ore_types[resources] = []
                 self.discovered_ore_types[resources].append(loc)
             elif location_type == "hazard_zone":
                 self.hazard_zones.append(loc)

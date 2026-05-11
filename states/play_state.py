@@ -148,6 +148,7 @@ class PlayState(State):
             "portal_to_fungal_unlocked": False,
             "portal_to_void_unlocked": False,
         }
+        self.last_boss_death_pos = None
         self.current_boss_spawned = False
         
         # Sync initial progression flags with progression manager
@@ -231,6 +232,18 @@ class PlayState(State):
                     self._handle_confirmation_choice(True)
                 elif event.key == pygame.K_n:
                     self._handle_confirmation_choice(False)
+                elif event.key == pygame.K_m:
+                    self.engine.auto_mine = not self.engine.auto_mine
+                    status = "ENABLED" if self.engine.auto_mine else "DISABLED"
+                    self._set_ui_message(f"AUTO MINE: {status}")
+                elif event.key == pygame.K_k:
+                    self.engine.auto_combat_entities = not self.engine.auto_combat_entities
+                    status = "ENABLED" if self.engine.auto_combat_entities else "DISABLED"
+                    self._set_ui_message(f"AUTO COMBAT: {status}")
+                elif event.key == pygame.K_b:
+                    self.engine.auto_combat_boss = not self.engine.auto_combat_boss
+                    status = "ENABLED" if self.engine.auto_combat_boss else "DISABLED"
+                    self._set_ui_message(f"AUTO BOSS: {status}")
 
             if self.inventory_open:
                 self._handle_inventory_mouse(event)
@@ -394,13 +407,16 @@ class PlayState(State):
                     except Exception:
                         pass
 
-        self._handle_progression_and_rewards()
-        self._handle_pending_actions()
-
         self.enemies = [e for e in self.enemies if not e.is_dead]
+        for b in self.bosses:
+            if b.is_dead:
+                self.last_boss_death_pos = (b.x, b.y)
         self.bosses = [b for b in self.bosses if not b.is_dead]
         self.enemy_ais = [ai for ai in self.enemy_ais if not ai.entity.is_dead]
         self.items = [i for i in self.items if i.active]
+
+        self._handle_progression_and_rewards()
+        self._handle_pending_actions()
         
         # Update visual and audio systems
         self.particle_system.update(scaled_dt)
@@ -689,13 +705,13 @@ class PlayState(State):
                     
             self._grant_world_reward(world_id)
             
-            # Chapter 2, 3, 4: Spawn portal at death location
-            if world_id != "toxic_plains":
-                # Find death pos (using boss_manager's last spawn or we can track it)
-                # For now, let's spawn it where the player is or near where the boss was
-                death_x = self.player.x + 50
-                death_y = self.player.y + 50
-                self._spawn_progression_portal(world_id, death_x, death_y)
+            # Spawn progression portal at death location
+            death_x, death_y = (self.player.x + 50, self.player.y + 50)
+            if self.last_boss_death_pos:
+                death_x, death_y = self.last_boss_death_pos
+            
+            self._spawn_progression_portal(world_id, death_x, death_y)
+            self.last_boss_death_pos = None # Reset
                 
             self._set_ui_message(f"Boss defeated! Reward acquired.")
 
@@ -714,6 +730,7 @@ class PlayState(State):
 
     def _spawn_progression_portal(self, world_id: str, x: float, y: float) -> None:
         target_map = {
+            "toxic_plains": "crystal_desert",
             "crystal_desert": "fungal_cave",
             "fungal_cave": "void_ruins",
             "void_ruins": "toxic_plains"

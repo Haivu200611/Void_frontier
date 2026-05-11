@@ -27,7 +27,7 @@ class CombatAI:
         
         # Combat stats
         self.aggressiveness: float = 0.7  # 0.0 (passive) to 1.0 (aggressive)
-        self.preferred_range: float = 80.0  # Attack range
+        self.preferred_range: float = 250.0  # Ranged attack distance
     
     def select_target(self, enemies: List) -> Optional[any]:
         """
@@ -268,10 +268,8 @@ class CombatAI:
         # Position and Attack
         dist = self.get_combat_distance(target)
         
-        # If we have a gun, we can shoot from further away
-        has_gun = False
-        if hasattr(self.player, 'inventory') and self.player.inventory:
-            has_gun = self.player.inventory.equipment.get("weapon") is not None
+        # AI now defaults to using its built-in kinetic blaster if no weapon is equipped
+        has_gun = True
             
         if dist > target_range:
             # Chase
@@ -298,10 +296,21 @@ class CombatAI:
                 else:
                     velocity_x, velocity_y = 0, 0
             else:
-                # Normal enemy: Stop and melee
-                velocity_x = 0
-                velocity_y = 0
-                self.perform_attack(target)
+                # Normal enemy: Keep distance and shoot
+                dx = target.x - self.player.x
+                dy = target.y - self.player.y
+                mag = math.sqrt(dx*dx + dy*dy)
+                
+                if mag < target_range * 0.7:
+                    # Too close, back away
+                    velocity_x = -(dx / mag) * self.player.base_speed * 0.6
+                    velocity_y = -(dy / mag) * self.player.base_speed * 0.6
+                else:
+                    # Good range, stop and fire
+                    velocity_x = 0
+                    velocity_y = 0
+                
+                # We don't call perform_attack(target) anymore as primary is shooting
             
             # Always try to shoot if in range
             if has_gun and dist < 600:
