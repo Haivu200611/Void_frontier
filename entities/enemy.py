@@ -2,6 +2,9 @@ import pygame
 from entities.entity import Entity
 from combat.hitbox import AttackBox
 from settings import *
+from rendering.sprite_renderer import SpriteRenderer
+import random
+import os
 
 
 class DummyEnemy(Entity):
@@ -29,6 +32,16 @@ class DummyEnemy(Entity):
         # Flash colour when hit
         self._flash_timer: float = 0.0
         self._base_color = COLOR_ENEMY
+
+        # Sprite setup
+        self.sprite_renderer = SpriteRenderer()
+        enemy_files = [
+            "alien.png", "crystal monster.png", "parasite.png", 
+            "robot.png", "shadow.png", "slime.png", 
+            "void creature.png", "worm.png"
+        ]
+        chosen = random.choice(enemy_files)
+        self.sprite_renderer.load_sprite("enemy", f"enemies/{chosen}")
 
     # ------------------------------------------------------------------
     # Update
@@ -64,11 +77,10 @@ class DummyEnemy(Entity):
         if self.hurtbox and self.hurtbox.should_blink():
             return
 
-        render_rect = self.rect.move(-offset_x, -offset_y)
-        pygame.draw.rect(surface, self.color, render_rect)
-
-        # Inset square to make it look slightly different from player
-        inner = render_rect.inflate(-8, -8)
-        pygame.draw.rect(surface, (max(0, self.color[0] - 60),
-                                    max(0, self.color[1] - 20),
-                                    max(0, self.color[2] - 20)), inner)
+        flip_x = self.velocity_x < 0
+        tint = (255, 100, 100) if self._flash_timer > 0 else None
+        
+        self.sprite_renderer.render_sprite(
+            surface, "enemy", self.x, self.y, 
+            offset_x, offset_y, scale=1.5, flip_x=flip_x, tint=tint
+        )

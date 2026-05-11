@@ -19,7 +19,7 @@ class Player(Entity):
         super().__init__(x, y, TILE_SIZE * 0.75, TILE_SIZE * 0.75, COLOR_PLAYER)
 
         self.sprite_renderer = SpriteRenderer()
-        self.sprite_renderer.load_sprite("player", "assets/images/player/idle.png")
+        self.sprite_renderer.load_sprite("player", "sprites/players/idle/idle_01.png")
 
         self.base_speed = 300.0
         self.speed = self.base_speed

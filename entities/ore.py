@@ -140,22 +140,33 @@ class Ore(Entity):
                 self.health = self.max_health
 
     def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
-        rect = self.rect.copy()
-        rect.x -= offset_x
-        rect.y -= offset_y
+        if not hasattr(self, 'sprite_renderer'):
+            from rendering.sprite_renderer import SpriteRenderer
+            self.sprite_renderer = SpriteRenderer()
+            self.sprite_renderer.load_sprite("ore", "items/resources/resources.png")
 
         if self.is_dead:
+            # Render ghost/empty node
+            rect = self.rect.copy()
+            rect.x -= offset_x
+            rect.y -= offset_y
             pygame.draw.rect(surface, (35, 35, 40), rect, 1)
             return
 
         base_color = self.color
         if self._feedback_timer > 0:
-            base_color = tuple(min(255, c + 50) for c in self.color)
+            base_color = tuple(min(255, c + 80) for c in self.color)
 
-        pygame.draw.rect(surface, base_color, rect)
-        pygame.draw.rect(surface, (25, 25, 30), rect, 2)
+        # Draw sprite with tint
+        self.sprite_renderer.render_sprite(
+            surface, "ore", self.x, self.y,
+            offset_x, offset_y, scale=1.0, tint=base_color
+        )
 
         if self.health < self.max_health:
+            rect = self.rect.copy()
+            rect.x -= offset_x
+            rect.y -= offset_y
             bar_w = self.width
             ratio = max(0.0, self.health / self.max_health)
             pygame.draw.rect(surface, (60, 20, 20), (rect.x, rect.y - 8, bar_w, 4))

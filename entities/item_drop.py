@@ -44,11 +44,29 @@ class ItemDrop:
     def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
         if not self.active:
             return
-        rect = self.hitbox.rect.copy()
-        rect.x -= offset_x
-        rect.y -= offset_y
-        pygame.draw.rect(surface, self.color, rect)
-        pygame.draw.rect(surface, (20, 20, 20), rect, 1)
+
+        if not hasattr(self, 'sprite_renderer'):
+            from rendering.sprite_renderer import SpriteRenderer
+            self.sprite_renderer = SpriteRenderer()
+            # If it's a resource, use the rock sprite
+            if self.item_id and "ore" in self.item_id:
+                self.sprite_renderer.load_sprite("item", "items/resources/resources.png")
+            else:
+                # Fallback to a generic box for now or a generic item sprite if we had one
+                pass
+
+        if hasattr(self, 'sprite_renderer') and self.sprite_renderer.sprite_cache.get("item"):
+            self.sprite_renderer.render_sprite(
+                surface, "item", self.x, self.y,
+                offset_x, offset_y, scale=0.4, tint=self.color
+            )
+        else:
+            # Fallback to rect
+            rect = self.hitbox.rect.copy()
+            rect.x -= offset_x
+            rect.y -= offset_y
+            pygame.draw.rect(surface, self.color, rect)
+            pygame.draw.rect(surface, (255, 255, 255), rect, 1)
 
 
 class HealthDrop(ItemDrop):

@@ -15,6 +15,22 @@ class VoidGuardian(Boss):
         self.state_timer = 3.0
         
         self.reward = "artifact_3"
+        
+        from rendering.sprite_renderer import SpriteRenderer
+        self.sprite_renderer = SpriteRenderer()
+        self.sprite_renderer.load_sprite("boss", "bosses/boss_4_void_guardian.png")
+
+    def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
+        if self.hurtbox and self.hurtbox.should_blink():
+            return
+            
+        import time
+        pulse = math.sin(time.time() * 5) * 0.1
+        current_scale = 4.0 + pulse
+        
+        tint = (255, 100, 255) if self.phase == 2 else None
+        self.sprite_renderer.render_sprite(surface, "boss", self.x, self.y, offset_x, offset_y, 
+                                         scale=current_scale, tint=tint)
 
     def update(self, dt: float, player=None, projectile_pool=None) -> None:
         super().update(dt, player, projectile_pool)

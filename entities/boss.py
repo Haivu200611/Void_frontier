@@ -72,17 +72,30 @@ class Boss(DummyEnemy):
         if self.hurtbox and self.hurtbox.should_blink():
             return
 
-        render_rect = self.rect.move(-offset_x, -offset_y)
-        pygame.draw.rect(surface, self.color, render_rect)
+        boss_img = {
+            "mecha_beast": "bosses/boss_1_mecha_beast.png",
+            "crystal_titan": "bosses/boss_2_crystal_titan.png",
+            "toxic_worm": "bosses/boss_3_toxic_worm.png",
+            "void_guardian": "bosses/boss_4_void_guardian.png",
+        }.get(getattr(self, 'boss_type', ''), "bosses/boss_1_mecha_beast.png")
+        
+        # Load on demand or pre-load in init
+        if not hasattr(self, 'sprite_renderer'):
+            from rendering.sprite_renderer import SpriteRenderer
+            self.sprite_renderer = SpriteRenderer()
+            self.sprite_renderer.load_sprite("boss", boss_img)
 
-        # Decorative inner outline
-        inner = render_rect.inflate(-12, -12)
-        pygame.draw.rect(surface, (255, 255, 255), inner, 2)
+        tint = (255, 150, 150) if self._flash_timer > 0 else None
+        self.sprite_renderer.render_sprite(
+            surface, "boss", self.x, self.y,
+            offset_x, offset_y, scale=4.0, tint=tint
+        )
 
         # Name tag
-        font = pygame.font.SysFont(None, 20)
+        render_rect = self.rect.move(-offset_x, -offset_y)
+        font = pygame.font.SysFont(None, 24)
         name_surf = font.render(self.name, True, (255, 255, 255))
-        name_rect = name_surf.get_rect(midbottom=(render_rect.centerx, render_rect.top - 4))
+        name_rect = name_surf.get_rect(midbottom=(render_rect.centerx, render_rect.top - 10))
         surface.blit(name_surf, name_rect)
 
     def render_ui(self, surface: pygame.Surface, camera) -> None:

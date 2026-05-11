@@ -9,7 +9,7 @@ class MechaBeast(Boss):
     def __init__(self, x: float, y: float):
         super().__init__(x, y, name="MECHA BEAST")
         self.sprite_renderer = SpriteRenderer()
-        self.sprite_renderer.load_sprite("boss", "assets/images/bosses/mecha_beast.png")
+        self.sprite_renderer.load_sprite("boss", "bosses/boss_1_mecha_beast.png")
         self.max_health = 1500.0
         self.health = self.max_health
         self.color = (180, 50, 50)
@@ -111,4 +111,4 @@ class MechaBeast(Boss):
         # Tint boss based on phase
         tint = (255, 100, 100) if self.phase == 2 else None
         self.sprite_renderer.render_sprite(surface, "boss", self.x, self.y, offset_x, offset_y, 
-                                         scale=2.5, tint=tint)
+                                         scale=4.0, tint=tint)

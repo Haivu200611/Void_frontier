@@ -43,3 +43,26 @@ class NPC(Entity):
             elif len(progression_manager.collected_artifacts) > 0:
                 self.dialogue[1] = f"You've found {len(progression_manager.collected_artifacts)} artifacts. Keep searching!"
 
+    def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
+        if not hasattr(self, 'sprite_renderer'):
+            from rendering.sprite_renderer import SpriteRenderer
+            self.sprite_renderer = SpriteRenderer()
+            npc_img = {
+                "trader": "npc/trader.png",
+                "scientist": "npc/scientist.png",
+                "survivor": "npc/survivor.png"
+            }.get(self.npc_type, "npc/trader.png")
+            self.sprite_renderer.load_sprite("npc", npc_img)
+            
+        self.sprite_renderer.render_sprite(
+            surface, "npc", self.x, self.y,
+            offset_x, offset_y, scale=1.5
+        )
+        
+        # Name tag
+        font = pygame.font.SysFont(None, 20)
+        name_surf = font.render(self.name, True, (255, 255, 255))
+        rect = self.rect.move(-offset_x, -offset_y)
+        name_rect = name_surf.get_rect(midbottom=(rect.centerx, rect.top - 5))
+        surface.blit(name_surf, name_rect)
+

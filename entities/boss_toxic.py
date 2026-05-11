@@ -15,6 +15,20 @@ class ToxicWorm(Boss):
         self.state_timer = 2.0
         
         self.reward = "artifact_2"
+        
+        from rendering.sprite_renderer import SpriteRenderer
+        self.sprite_renderer = SpriteRenderer()
+        self.sprite_renderer.load_sprite("boss", "bosses/boss_3_toxic_worm.png")
+
+    def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
+        if self.hurtbox and self.hurtbox.should_blink():
+            return
+            
+        alpha = 100 if self.state == "tunneling" else 255
+        tint = (150, 255, 150) if self.phase == 2 else None
+        
+        self.sprite_renderer.render_sprite(surface, "boss", self.x, self.y, offset_x, offset_y, 
+                                         scale=4.0, tint=tint, alpha=alpha)
 
     def update(self, dt: float, player=None, projectile_pool=None) -> None:
         super().update(dt, player, projectile_pool)
