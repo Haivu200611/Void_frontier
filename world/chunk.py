@@ -50,13 +50,8 @@ class Chunk:
             world_y + chunk_h - offset_y < 0):
             return
 
-        chunk_rect = pygame.Rect(
-            world_x - offset_x,
-            world_y - offset_y,
-            chunk_w,
-            chunk_h,
-        )
-        pygame.draw.rect(surface, self.terrain_color, chunk_rect)
-
+        # Do not paint an opaque chunk-color background here.
+        # The world background image is rendered in the environmental layer
+        # and should stay visible behind obstacles/entities.
         for obs in self.obstacles:
             obs.render(surface, offset_x, offset_y)

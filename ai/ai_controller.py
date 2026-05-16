@@ -433,21 +433,13 @@ class AIController:
                 self.player.velocity_x = 0
                 self.player.velocity_y = 0
         
-        # Handle combat (legacy/fallback)
+        # Handle combat fallback with ranged attack only (melee disabled).
         if self.attack_target:
             target = self.attack_target
             dist = ((target.x - self.player.x) ** 2 + (target.y - self.player.y) ** 2) ** 0.5
             
-            if dist < 100:
-                # In attack range
-                if not self.player.is_attacking and self.player.attack_timer <= 0:
-                    self.player.is_attacking = True
-                    self.player.attack_timer = self.player.attack_cooldown
-                    self.player.attack_box.activate()
-                    # Point attack at target
-                    if dist > 0:
-                        self.player.attack_box.offset_x = (target.x - self.player.x) * 0.5
-                        self.player.attack_box.offset_y = (target.y - self.player.y) * 0.5
+            if dist < 600 and projectile_pool and self.player.shoot_timer <= 0:
+                self.combat_ai.perform_shoot(target, projectile_pool)
     
     def _reevaluate_goal(self) -> None:
         """Periodically check if goal is still valid"""

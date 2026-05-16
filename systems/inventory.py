@@ -130,6 +130,10 @@ class Inventory:
     def has_items(self, requirements: dict[str, int]) -> bool:
         return all(self.count_item(item_id) >= count for item_id, count in requirements.items())
 
+    def has_item(self, item_id: str, count: int = 1) -> bool:
+        """Compatibility helper for call sites that query a single item."""
+        return self.count_item(item_id) >= max(0, count)
+
     # ------------------------------------------------------------------
     # Grid / hotbar / drag-drop
     # ------------------------------------------------------------------

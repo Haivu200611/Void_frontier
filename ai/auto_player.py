@@ -27,12 +27,6 @@ class AutoPlayerController:
             else:
                 self.player.velocity_x = 0
                 self.player.velocity_y = 0
-                if not self.player.is_attacking:
-                    self.player.is_attacking = True
-                    self.player.attack_timer = self.player.attack_cooldown
-                    self.player.attack_box.activate()
-                    self.player.attack_box.offset_x = (nearest.x - self.player.x) * 0.5
-                    self.player.attack_box.offset_y = (nearest.y - self.player.y) * 0.5
 
         elif state in ["EXPLORE", "LOOT", "FIND_OXYGEN", "FIND_FOOD"]:
             if not self.current_path:

@@ -6,6 +6,7 @@ Handles parallax backgrounds, ambient fog, environmental ambience, etc.
 import pygame
 import math
 import random
+import os
 from typing import List, Tuple, Optional
 
 
@@ -205,6 +206,21 @@ class EnvironmentalImmersion:
         
         self.current_biome = "toxic_plains"
         self.weather_intensity = 0.0  # 0-1
+        self.camera_x = 0.0
+        self.camera_y = 0.0
+
+        # Story-order mapping for background images:
+        # toxic_plains -> world_01
+        # crystal_desert -> world_02
+        # fungal_cave -> world_03
+        # void_ruins -> world_04
+        self._world_bg_files = {
+            "toxic_plains": "world_01.png",
+            "crystal_desert": "world_02.png",
+            "fungal_cave": "world_03.png",
+            "void_ruins": "world_04.png",
+        }
+        self._bg_cache: dict[str, pygame.Surface] = {}
     
     def set_biome(self, biome_id: str) -> None:
         """Set current biome for appropriate effects."""
@@ -223,6 +239,49 @@ class EnvironmentalImmersion:
         elif biome_id == "void_ruins":
             self.fog_effect.set_intensity(0.6)
             self.fog_effect.color = (50, 50, 80)
+
+    def _get_world_background(self) -> Optional[pygame.Surface]:
+        """Load and cache background image for current biome."""
+        filename = self._world_bg_files.get(self.current_biome)
+        if not filename:
+            return None
+        if filename in self._bg_cache:
+            return self._bg_cache[filename]
+
+        path = os.path.join("assets", "images", "background", filename)
+        if not os.path.exists(path):
+            return None
+        try:
+            surf = pygame.image.load(path).convert()
+            self._bg_cache[filename] = surf
+            return surf
+        except Exception:
+            return None
+
+    def _render_tiled_world_background(self, surface: pygame.Surface) -> None:
+        """
+        Render world background by tiling the source image.
+        This keeps original texture detail (no full-screen upscale stretch).
+        """
+        bg = self._get_world_background()
+        if bg is None:
+            return
+
+        tile_w = max(1, bg.get_width())
+        tile_h = max(1, bg.get_height())
+
+        # Follow world movement with subtle parallax so the texture feels alive.
+        # Negative modulo gives us stable tile origin as camera moves.
+        base_x = int((-self.camera_x * 0.25) % tile_w) - tile_w
+        base_y = int((-self.camera_y * 0.12) % tile_h) - tile_h
+
+        x = base_x
+        while x < self.screen_width + tile_w:
+            y = base_y
+            while y < self.screen_height + tile_h:
+                surface.blit(bg, (x, y))
+                y += tile_h
+            x += tile_w
     
     def trigger_ambient_weather(self, intensity: float = 1.0) -> None:
         """Trigger ambient weather effects."""
@@ -236,6 +295,8 @@ class EnvironmentalImmersion:
     
     def update(self, dt: float, camera_x: float, camera_y: float) -> None:
         """Update all environmental effects."""
+        self.camera_x = camera_x
+        self.camera_y = camera_y
         for layer in self.parallax_layers:
             layer.update(camera_x, camera_y)
         
@@ -245,13 +306,15 @@ class EnvironmentalImmersion:
     
     def render(self, surface: pygame.Surface) -> None:
         """Render all environmental effects."""
+        # Render story-mapped world background first (tiled, not stretched).
+        self._render_tiled_world_background(surface)
+
         # Render parallax backgrounds first
         for layer in self.parallax_layers:
             layer.render(surface, self.screen_width, self.screen_height)
         
-        # Render ambient effects
+        # Render ambient effects (fog overlay disabled by request)
         self.ambient_particles.render(surface)
-        self.fog_effect.render(surface)
         self.meteor_rain.render(surface)
     
     def render_above_world(self, surface: pygame.Surface) -> None:

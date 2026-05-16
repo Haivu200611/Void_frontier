@@ -47,6 +47,16 @@ class EnemyAI:
         player = players[0]
         dist = math.hypot(self.entity.x - player.x, self.entity.y - player.y)
 
+        # Expose current FSM state to entity so renderer/animation can react.
+        self.entity.ai_state = self.state
+        self.entity.ai_state_name = {
+            EnemyState.IDLE: "idle",
+            EnemyState.PATROL: "patrol",
+            EnemyState.CHASE: "chase",
+            EnemyState.ATTACK: "attack",
+            EnemyState.FLEE: "flee",
+        }.get(self.state, "idle")
+
         # Tick attack cooldown
         if self.attack_timer > 0:
             self.attack_timer -= dt
@@ -63,6 +73,16 @@ class EnemyAI:
 
         elif self.state == EnemyState.ATTACK:
             self._attack(dt, player, dist)
+
+        # Keep latest state visible after transitions within this frame.
+        self.entity.ai_state = self.state
+        self.entity.ai_state_name = {
+            EnemyState.IDLE: "idle",
+            EnemyState.PATROL: "patrol",
+            EnemyState.CHASE: "chase",
+            EnemyState.ATTACK: "attack",
+            EnemyState.FLEE: "flee",
+        }.get(self.state, "idle")
 
     # ------------------------------------------------------------------
     # State behaviours

@@ -6,6 +6,8 @@ from states.menu_state import MenuState
 from states.play_state import PlayState
 from states.how_to_play_state import HowToPlayState
 from states.ending_state import EndingState
+from states.game_over_state import GameOverState
+from states.language_menu_state import LanguageMenuState
 
 class GameEngine:
     def __init__(self):
@@ -31,7 +33,9 @@ class GameEngine:
         self.state_machine.add_state("Menu", MenuState)
         self.state_machine.add_state("Play", PlayState)
         self.state_machine.add_state("HowToPlay", HowToPlayState)
+        self.state_machine.add_state("LanguageMenu", LanguageMenuState)
         self.state_machine.add_state("Ending", EndingState)
+        self.state_machine.add_state("GameOver", GameOverState)
         
     def handle_events(self):
         events = pygame.event.get()

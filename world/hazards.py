@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import os
 import random
 from dataclasses import dataclass
+from typing import Optional
 
 import pygame
 
@@ -41,6 +43,23 @@ class HazardManager:
     def __init__(self, seed: str):
         self.seed = seed
         self.zones_by_chunk: dict[tuple[int, int], list[HazardZone]] = {}
+        self.hazard_images: dict[str, Optional[pygame.Surface]] = {}
+        self._load_hazard_images()
+    
+    def _load_hazard_images(self) -> None:
+        """Load hazard zone images from assets/images/danger_zone/"""
+        base_path = os.path.join(os.path.dirname(__file__), "..", "assets", "images", "danger_zone")
+        
+        for hazard_type in HAZARD_SPECS.keys():
+            image_path = os.path.join(base_path, f"{hazard_type}.png")
+            try:
+                if os.path.exists(image_path):
+                    self.hazard_images[hazard_type] = pygame.image.load(image_path)
+                else:
+                    self.hazard_images[hazard_type] = None
+            except Exception as e:
+                print(f"Failed to load hazard image {hazard_type}: {e}")
+                self.hazard_images[hazard_type] = None
 
     def ensure_chunk_zones(self, chunk_x: int, chunk_y: int, biome_hazards: tuple[str, ...]) -> None:
         key = (chunk_x, chunk_y)
@@ -106,9 +125,18 @@ class HazardManager:
     def render(self, surface: pygame.Surface, offset_x: int, offset_y: int, zones: list[HazardZone], debug: bool) -> None:
         for zone in zones:
             rect = zone.rect.move(-offset_x, -offset_y)
-            if debug:
-                pygame.draw.rect(surface, zone.spec.color, rect, 2)
+            
+            # Try to render hazard image
+            hazard_image = self.hazard_images.get(zone.hazard_type)
+            if hazard_image:
+                # Scale image to match zone rect size
+                scaled_image = pygame.transform.scale(hazard_image, (int(rect.width), int(rect.height)))
+                surface.blit(scaled_image, rect.topleft)
             else:
+                # Fallback to colored overlay if image not found
                 overlay = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
                 overlay.fill((*zone.spec.color, 55))
                 surface.blit(overlay, rect.topleft)
+            
+            if debug:
+                pygame.draw.rect(surface, zone.spec.color, rect, 2)

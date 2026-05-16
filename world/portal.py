@@ -42,9 +42,15 @@ class Portal:
             return inventory.count_item(self.requirement.required_item) >= self.requirement.required_count
         return True
 
-    def try_unlock(self, progression_manager, inventory) -> bool:
+    def try_unlock(self, progression_manager, inventory, progression_flags: dict[str, bool] | None = None) -> bool:
         if self.is_unlocked:
             return True
+
+        if progression_flags is None:
+            progression_flags = {}
+
+        if self.requirement.required_flag and not progression_flags.get(self.requirement.required_flag, False):
+            return False
         
         # Use progression manager to check if this portal's target world can be unlocked
         if not progression_manager.can_unlock_world(self.target_world):

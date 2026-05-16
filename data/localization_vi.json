@@ -1,0 +1,118 @@
+{
+  "menu": {
+    "title": "VOID FRONTIER",
+    "play": "CHƠI",
+    "how_to_play": "HƯỚNG DẪN CHƠI",
+    "settings": "CÀI ĐẶT",
+    "quit": "THOÁT",
+    "resume": "TIẾP TỤC",
+    "language": "NGÔN NGỮ",
+    "music_volume": "Âm lượng nhạc",
+    "sfx_volume": "Âm lượng hiệu ứng"
+  },
+  "hud": {
+    "health": "Sức khỏe",
+    "oxygen": "Oxy",
+    "hunger": "Đói",
+    "inventory": "Túi đồ",
+    "inventory_full": "Túi đồ đầy!",
+    "level": "Cấp độ",
+    "experience": "Kinh nghiệm"
+  },
+  "items": {
+    "health_orb": "Viên sức khỏe",
+    "oxygen_orb": "Viên oxy",
+    "food_orb": "Viên thức ăn",
+    "iron_ore": "Quặng sắt",
+    "crystal_ore": "Quặng tinh thể",
+    "toxic_ore": "Quặng độc",
+    "void_fragment": "Mảnh Void",
+    "iron_pickaxe": "Cuốc sắt",
+    "crystal_pickaxe": "Cuốc tinh thể",
+    "iron_gun": "Súng sắt",
+    "plasma_gun": "Súng plasma",
+    "laser_rifle": "Súng laser"
+  },
+  "bosses": {
+    "mecha_beast": "QUÁI THÚ CƠ KHÍ",
+    "crystal_titan": "TITAN TINH THỂ",
+    "toxic_worm": "SÂU ĐỘC",
+    "void_guardian": "VỆ THẦN VOID"
+  },
+  "worlds": {
+    "toxic_plains": "Đồng bằng độc",
+    "crystal_desert": "Sa mạc tinh thể",
+    "fungal_cave": "Hang nấm",
+    "void_ruins": "Tàn tích Void"
+  },
+  "status": {
+    "poison": "Nhiễm độc",
+    "burn": "Bỏng",
+    "toxic_damage": "Sát thương độc",
+    "slow": "Làm chậm"
+  },
+  "hazards": {
+    "toxic_zone": "Vùng độc",
+    "lava": "Dung nham",
+    "acid_pool": "Vũng axit",
+    "radiation_zone": "Vùng phóng xạ"
+  },
+  "messages": {
+    "welcome": "Chào mừng đến với Void Frontier",
+    "game_over": "THUA CUỘC",
+    "victory": "CHIẾN THẮNG",
+    "boss_defeated": "Đã hạ gục Boss!",
+    "artifact_collected": "Đã thu thập cổ vật!",
+    "level_up": "THĂNG CẤP!",
+    "insufficient_resources": "Không đủ tài nguyên",
+    "crafting_complete": "Chế tạo thành công!",
+    "save_successful": "Đã lưu game",
+    "load_successful": "Đã tải game"
+  },
+  "controls": {
+    "move_up": "Di chuyển lên",
+    "move_down": "Di chuyển xuống",
+    "move_left": "Di chuyển trái",
+    "move_right": "Di chuyển phải",
+    "attack": "Tấn công",
+    "mine": "Khai thác",
+    "dodge": "Lộn né",
+    "inventory": "Mở túi đồ",
+    "crafting": "Chế tạo",
+    "interact": "Tương tác",
+    "save": "Lưu",
+    "load": "Tải",
+    "auto_mode": "Bật/Tắt chế độ tự động",
+    "pause": "Tạm dừng"
+  },
+  "how_to_play": {
+    "title": "HƯỚNG DẪN CHƠI",
+    "welcome": "CHÀO MỪNG ĐẾN VOID FRONTIER",
+    "objective": "Bạn bị mắc kẹt trên một hành tinh xa lạ ở rìa vũ trụ đã biết.\nNhiệm vụ của bạn: SỐNG SÓT, KHÁM PHÁ và THOÁT KHỎI nơi này.",
+    "objectives": [
+      "Khai thác tài nguyên từ địa hình ngoài hành tinh",
+      "Chế tạo và nâng cấp trang bị",
+      "Chiến đấu với kẻ thù nguy hiểm và Boss khổng lồ",
+      "Thu thập cổ vật để mở khóa lối thoát"
+    ],
+    "movement_heading": "DI CHUYỂN & TƯƠNG TÁC",
+    "combat_heading": "KHAI THÁC & CHIẾN ĐẤU",
+    "inventory_heading": "TÚI ĐỒ & MENU",
+    "hotbar_heading": "HỆ THỐNG TRUY CẬP NHANH",
+    "survival_heading": "CHỈ SỐ SINH TỒN",
+    "gathering_heading": "THU THẬP TÀI NGUYÊN",
+    "crafting_heading": "HỆ THỐNG CHẾ TẠO",
+    "combat_heading2": "THAM GIA CHIẾN ĐẤU",
+    "boss_battles": "TRẬN ĐÁNH BOSS",
+    "danger_zones": "VÙNG NGUY HIỂM - TRÁNH HOẶC CHẾT",
+    "world_progression": "BỐN THẾ GIỚI",
+    "npcs_heading": "GẶP GỠ NPC",
+    "strategies_heading": "CHIẾN THUẬT SỐNG SÓT"
+  },
+  "npc": {
+    "scientist": "Nhà khoa học",
+    "survivor": "Người sống sót",
+    "trader": "Thương nhân",
+    "guardian": "Vệ thần"
+  }
+}

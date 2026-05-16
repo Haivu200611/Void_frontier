@@ -130,8 +130,8 @@ class PlayState(State):
         # Keep old auto_controller for backward compatibility (if needed)
         self.auto_controller = AutoPlayerController(self.player, self.world_manager)
 
-        self.font = pygame.font.SysFont(None, 22)
-        self.font_large = pygame.font.SysFont(None, 30)
+        self.font = pygame.font.SysFont("segoeui", 22)
+        self.font_large = pygame.font.SysFont("segoeui", 30)
 
         self._dead_enemy_drop_set: set = set()
         self.loaded_chunk_keys: list[tuple[int, int]] = []
@@ -177,6 +177,10 @@ class PlayState(State):
         self.tooltip_text = ""
         self.ui_message = ""
         self.ui_message_timer = 0.0
+        self.npc_trade_panel_active = False
+        self.npc_trade_panel_timer = 0.0
+        self.npc_trade_panel_title = ""
+        self.npc_trade_panel_lines: list[str] = []
 
         self.pending_portal_interact = False
         self.pending_use_hotbar = False
@@ -274,9 +278,9 @@ class PlayState(State):
         any_auto = self.engine.auto_mine or self.engine.auto_combat_entities or self.engine.auto_combat_boss
         mine_input = False
         if not any_auto:
-            keys = pygame.key.get_pressed()
             mouse = pygame.mouse.get_pressed()
-            mine_input = mouse[0] and (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT])
+            mine_input = mouse[0]
+        self.player.is_mining = mine_input
 
         if mine_input:
             if self.mining_system.try_mine(self.player, self.visible_ores, self.items, self.camera, mine_input=True):
@@ -339,6 +343,8 @@ class PlayState(State):
         for enemy in self.enemies:
             enemy.update(scaled_dt)
         for npc in self.npcs:
+            if getattr(npc, "world_id", self.world_manager.current_world_id) != self.world_manager.current_world_id:
+                continue
             npc.update(scaled_dt)
         for boss in self.bosses:
             boss.update(scaled_dt, self.player, self.projectile_pool)
@@ -407,7 +413,10 @@ class PlayState(State):
                     except Exception:
                         pass
 
-        self.enemies = [e for e in self.enemies if not e.is_dead]
+        self.enemies = [
+            e for e in self.enemies
+            if not (e.is_dead and getattr(e, "death_remove_timer", 0.0) <= 0.0)
+        ]
         for b in self.bosses:
             if b.is_dead:
                 self.last_boss_death_pos = (b.x, b.y)
@@ -448,9 +457,11 @@ class PlayState(State):
         self.camera.update(self.player, scaled_dt)
 
         if self.player.is_dead:
-            # You could add a game over delay or effect here
-            print("GAME OVER: Player health reached 0.")
-            self.engine.state_machine.change_state("Menu")
+            self.engine.state_machine.change_state(
+                "GameOver",
+                world=self.world_manager.current_world_id,
+                reason="Life support failed. Mission aborted.",
+            )
 
     def render(self, surface: pygame.Surface) -> None:
         surface.fill(COLOR_BG)
@@ -483,6 +494,8 @@ class PlayState(State):
             item.render(surface, ox, oy)
 
         for npc in self.npcs:
+            if getattr(npc, "world_id", self.world_manager.current_world_id) != self.world_manager.current_world_id:
+                continue
             npc.render(surface, ox, oy)
 
         for enemy in self.enemies:
@@ -560,13 +573,34 @@ class PlayState(State):
         self.player.hunger = self.player.max_hunger / 5.0
 
     def _refresh_world_entities(self) -> None:
-        self.spawn_manager.configure_for_world(self.world_manager.current_world_id)
-        self._setup_portals_for_world(self.world_manager.current_world_id)
-        self._setup_boss_for_world(self.world_manager.current_world_id)
+        world_id = self.world_manager.current_world_id
+        self.spawn_manager.configure_for_world(world_id)
+        self._setup_portals_for_world(world_id)
+        self._setup_boss_for_world(world_id)
 
         self.enemies.clear()
         self.enemy_ais.clear()
         self.items.clear()
+
+        # If this world's boss is already defeated (e.g. after load/backtracking),
+        # ensure chapter NPC is present near progression portal.
+        boss_flag = WORLD_BOSS_FLAGS.get(world_id)
+        if boss_flag and self.progression_flags.get(boss_flag, False):
+            next_map = {
+                "crystal_desert": "fungal_cave",
+                "fungal_cave": "void_ruins",
+                "void_ruins": "toxic_plains",
+            }
+            target = next_map.get(world_id)
+            anchor = None
+            if target:
+                for p in self.portal_manager.portals:
+                    if p.target_world == target:
+                        anchor = (p.x, p.y)
+                        break
+            if anchor is None:
+                anchor = (self.player.x + 120, self.player.y)
+            self._spawn_chapter_npc(world_id, anchor[0] + 120, anchor[1])
 
         self.auto_controller = AutoPlayerController(self.player, self.world_manager)
 
@@ -701,16 +735,18 @@ class PlayState(State):
             
             if boss_id:
                 reward = self.progression_manager.mark_boss_defeated(boss_id)
-                # Note: mark_boss_defeated already returns the artifact ID (alpha, beta, gamma)
+                # Keep progression artifacts in sync with progression.json reward ids.
+                if reward and reward.startswith("artifact_"):
+                    self.progression_manager.add_artifact(reward)
                     
-            self._grant_world_reward(world_id)
-            
             # Spawn progression portal at death location
             death_x, death_y = (self.player.x + 50, self.player.y + 50)
             if self.last_boss_death_pos:
                 death_x, death_y = self.last_boss_death_pos
             
             self._spawn_progression_portal(world_id, death_x, death_y)
+            self._spawn_chapter_npc(world_id, death_x + 120, death_y)
+            self._grant_world_reward(world_id)
             self.last_boss_death_pos = None # Reset
                 
             self._set_ui_message(f"Boss defeated! Reward acquired.")
@@ -757,15 +793,34 @@ class PlayState(State):
         elif world_id == "crystal_desert":
             self.inventory.add_item("quest_artifact_alpha", 1)
             self.artifact_tracking["alpha"] = True
-            self.npcs.append(NPC(self.player.x + 100, self.player.y))
         elif world_id == "fungal_cave":
             self.inventory.add_item("quest_artifact_beta", 1)
             self.artifact_tracking["beta"] = True
-            self.npcs.append(NPC(self.player.x + 100, self.player.y))
         elif world_id == "void_ruins":
             self.inventory.add_item("quest_artifact_gamma", 1)
             self.artifact_tracking["gamma"] = True
-            self.npcs.append(NPC(self.player.x + 100, self.player.y))
+
+    def _spawn_chapter_npc(self, world_id: str, x: float, y: float) -> None:
+        # Chapter NPC mapping requested:
+        # Chapter 2 -> scientist, Chapter 3 -> survivor, Chapter 4 -> trader.
+        mapping = {
+            "crystal_desert": ("scientist", "Scientist"),
+            "fungal_cave": ("survivor", "Survivor"),
+            "void_ruins": ("trader", "Trader"),
+        }
+        data = mapping.get(world_id)
+        if not data:
+            return
+
+        npc_type, name = data
+        exists = any(
+            getattr(n, "npc_type", None) == npc_type and getattr(n, "world_id", None) == world_id
+            for n in self.npcs
+        )
+        if exists:
+            return
+
+        self.npcs.append(NPC(x, y, name=name, npc_type=npc_type, world_id=world_id))
 
     def _handle_pending_actions(self) -> None:
         if self.pending_use_hotbar:
@@ -783,14 +838,13 @@ class PlayState(State):
         if self.pending_load:
             self.pending_load = False
             self._load_game(slot=0)
-            self._load_game(slot=0)
 
     def _interact(self) -> None:
         import math
         # Check Endgame Ship Interaction
         if self.world_manager.current_world_id == "toxic_plains":
             if math.hypot(self.player.x - 1000, self.player.y - 1000) < 150:
-                if self.inventory.has_item("ship_repair_kit", 1):
+                if self.inventory.has_item("quest_ship_repair_kit", 1):
                     self.ship_repair_prompt_active = True
                     self._set_ui_message("ORION-7 REPAIRED? [Y/N]", duration=10.0)
                 else:
@@ -799,11 +853,15 @@ class PlayState(State):
 
         # Check NPC interaction
         for npc in self.npcs:
+            if getattr(npc, "world_id", self.world_manager.current_world_id) != self.world_manager.current_world_id:
+                continue
             if math.hypot(self.player.x - npc.x, self.player.y - npc.y) < 100:
-                world_id = self.world_manager.current_world_id
-                if world_id in ["crystal_desert", "fungal_cave"]:
+                dialogue = npc.interact(self.progression_manager)
+                self._show_npc_trade_panel(npc, dialogue)
+
+                if npc.npc_type in ["scientist", "survivor"]:
                     if self.inventory.has_item("item_meteor_ore", 15):
-                        # Simple logic: Upgrade gun first, then pickaxe
+                        # Upgrade gun first, then pickaxe.
                         if not self.inventory.has_item("weapon_plasma_gun", 1):
                             if self.trading_system.trade_for_upgrade_gun():
                                 self._set_ui_message("Upgraded to Plasma Gun!")
@@ -814,7 +872,7 @@ class PlayState(State):
                             self._set_ui_message("You already have all upgrades from me.")
                     else:
                         self._set_ui_message("NPC: 'I need 15 Meteor Ore for upgrades.'")
-                elif world_id == "void_ruins":
+                elif npc.npc_type == "trader":
                     if self.trading_system.perform_trade_for_repair_kit():
                         self._set_ui_message("Received Ship Repair Kit! Return to Chapter 1.")
                     else:
@@ -827,7 +885,7 @@ class PlayState(State):
             return
 
         if not portal.is_unlocked:
-            if portal.try_unlock(self.progression_flags, self.inventory):
+            if portal.try_unlock(self.progression_manager, self.inventory, self.progression_flags):
                 self._set_ui_message("Portal unlocked")
             else:
                 self._set_ui_message("Portal remains locked")
@@ -1175,8 +1233,7 @@ class PlayState(State):
 
         hints = [
             "WASD: Move",
-            "LMB: Melee",
-            "Shift+LMB: Mine",
+            "LMB: Mine",
             "RMB: Shoot",
             "E: Inventory",
             "C: Crafting",
@@ -1204,6 +1261,22 @@ class PlayState(State):
         if self.ui_message_timer > 0:
             msg = self.font_large.render(self.ui_message, True, (240, 240, 200))
             surface.blit(msg, (WINDOW_WIDTH // 2 - msg.get_width() // 2, 56))
+
+        if self.npc_trade_panel_active and self.npc_trade_panel_timer > 0:
+            panel_w, panel_h = 560, 150
+            px = (WINDOW_WIDTH - panel_w) // 2
+            py = WINDOW_HEIGHT - panel_h - 22
+            panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+            panel.fill((8, 12, 20, 220))
+            surface.blit(panel, (px, py))
+            pygame.draw.rect(surface, (120, 170, 230), (px, py, panel_w, panel_h), 2)
+
+            title = self.font_large.render(self.npc_trade_panel_title, True, (235, 245, 255))
+            surface.blit(title, (px + 14, py + 10))
+
+            for i, line in enumerate(self.npc_trade_panel_lines[:4]):
+                text = self.font.render(line, True, (200, 220, 245))
+                surface.blit(text, (px + 14, py + 44 + i * 24))
 
     def _render_inventory(self, surface: pygame.Surface) -> None:
         panel = pygame.Surface((520, 300), pygame.SRCALPHA)
@@ -1332,6 +1405,32 @@ class PlayState(State):
     def _tick_ui(self, dt: float) -> None:
         if self.ui_message_timer > 0:
             self.ui_message_timer = max(0.0, self.ui_message_timer - dt)
+        if self.npc_trade_panel_timer > 0:
+            self.npc_trade_panel_timer = max(0.0, self.npc_trade_panel_timer - dt)
+            if self.npc_trade_panel_timer <= 0:
+                self.npc_trade_panel_active = False
+
+    def _show_npc_trade_panel(self, npc: NPC, dialogue: str) -> None:
+        ore_count = 0
+        for stack in self.inventory.slots:
+            if stack is None:
+                continue
+            if stack.item_id == "item_meteor_ore":
+                ore_count += stack.count
+
+        self.npc_trade_panel_title = f"{npc.name} ({npc.npc_type.title()})"
+        self.npc_trade_panel_lines = [dialogue]
+        if npc.npc_type in ("scientist", "survivor"):
+            self.npc_trade_panel_lines.append(f"Trade: 15 Meteor Ore (you have {ore_count})")
+            self.npc_trade_panel_lines.append("Reward: Plasma Gun / Crystal Pickaxe")
+        elif npc.npc_type == "trader":
+            self.npc_trade_panel_lines.append(f"Trade: 3 Mystery Items (tracked: {self.mystery_item_count})")
+            self.npc_trade_panel_lines.append("Reward: Ship Repair Kit")
+        else:
+            self.npc_trade_panel_lines.append("No trade available.")
+
+        self.npc_trade_panel_active = True
+        self.npc_trade_panel_timer = 4.0
 
     @staticmethod
     def _rarity_color(rarity: str) -> tuple[int, int, int]:

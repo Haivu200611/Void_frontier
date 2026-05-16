@@ -3,7 +3,7 @@ import pygame
 # Screen
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
-FPS = 60
+FPS = 30
 TITLE = "VOID FRONTIER"
 
 # Colors (Placeholder palette)

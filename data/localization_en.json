@@ -1,0 +1,118 @@
+{
+  "menu": {
+    "title": "VOID FRONTIER",
+    "play": "PLAY",
+    "how_to_play": "HOW TO PLAY",
+    "settings": "SETTINGS",
+    "quit": "QUIT",
+    "resume": "RESUME",
+    "language": "LANGUAGE",
+    "music_volume": "Music Volume",
+    "sfx_volume": "SFX Volume"
+  },
+  "hud": {
+    "health": "Health",
+    "oxygen": "Oxygen",
+    "hunger": "Hunger",
+    "inventory": "Inventory",
+    "inventory_full": "Inventory Full!",
+    "level": "Level",
+    "experience": "Experience"
+  },
+  "items": {
+    "health_orb": "Health Orb",
+    "oxygen_orb": "Oxygen Orb",
+    "food_orb": "Food Orb",
+    "iron_ore": "Iron Ore",
+    "crystal_ore": "Crystal Ore",
+    "toxic_ore": "Toxic Ore",
+    "void_fragment": "Void Fragment",
+    "iron_pickaxe": "Iron Pickaxe",
+    "crystal_pickaxe": "Crystal Pickaxe",
+    "iron_gun": "Iron Gun",
+    "plasma_gun": "Plasma Gun",
+    "laser_rifle": "Laser Rifle"
+  },
+  "bosses": {
+    "mecha_beast": "MECHA BEAST",
+    "crystal_titan": "CRYSTAL TITAN",
+    "toxic_worm": "TOXIC WORM",
+    "void_guardian": "VOID GUARDIAN"
+  },
+  "worlds": {
+    "toxic_plains": "Toxic Plains",
+    "crystal_desert": "Crystal Desert",
+    "fungal_cave": "Fungal Cave",
+    "void_ruins": "Void Ruins"
+  },
+  "status": {
+    "poison": "Poison",
+    "burn": "Burn",
+    "toxic_damage": "Toxic Damage",
+    "slow": "Slow"
+  },
+  "hazards": {
+    "toxic_zone": "Toxic Zone",
+    "lava": "Lava",
+    "acid_pool": "Acid Pool",
+    "radiation_zone": "Radiation Zone"
+  },
+  "messages": {
+    "welcome": "Welcome to Void Frontier",
+    "game_over": "GAME OVER",
+    "victory": "VICTORY",
+    "boss_defeated": "Boss Defeated!",
+    "artifact_collected": "Artifact Collected!",
+    "level_up": "LEVEL UP!",
+    "insufficient_resources": "Insufficient Resources",
+    "crafting_complete": "Crafting Complete!",
+    "save_successful": "Game Saved",
+    "load_successful": "Game Loaded"
+  },
+  "controls": {
+    "move_up": "Move Up",
+    "move_down": "Move Down",
+    "move_left": "Move Left",
+    "move_right": "Move Right",
+    "attack": "Attack",
+    "mine": "Mine",
+    "dodge": "Dodge Roll",
+    "inventory": "Inventory",
+    "crafting": "Crafting",
+    "interact": "Interact",
+    "save": "Save",
+    "load": "Load",
+    "auto_mode": "Toggle Auto Mode",
+    "pause": "Pause"
+  },
+  "how_to_play": {
+    "title": "HOW TO PLAY",
+    "welcome": "WELCOME TO VOID FRONTIER",
+    "objective": "You are stranded on an alien planet at the edge of known space.\nYour mission: SURVIVE, EXPLORE, and ESCAPE.",
+    "objectives": [
+      "Mine resources from the alien terrain",
+      "Craft and upgrade your equipment",
+      "Battle dangerous enemies and massive bosses",
+      "Collect artifacts to unlock your escape"
+    ],
+    "movement_heading": "MOVEMENT & INTERACTION",
+    "combat_heading": "MINING & COMBAT",
+    "inventory_heading": "INVENTORY & MENU",
+    "hotbar_heading": "QUICK ACCESS SYSTEM",
+    "survival_heading": "YOUR VITAL STATS",
+    "gathering_heading": "GATHERING RESOURCES",
+    "crafting_heading": "CRAFTING SYSTEM",
+    "combat_heading2": "ENGAGING ENEMIES",
+    "boss_battles": "BOSS BATTLES",
+    "danger_zones": "DANGER ZONES - AVOID OR DIE",
+    "world_progression": "THE FOUR WORLDS",
+    "npcs_heading": "MEET THE LOCALS",
+    "strategies_heading": "SURVIVAL STRATEGIES"
+  },
+  "npc": {
+    "scientist": "Scientist",
+    "survivor": "Survivor",
+    "trader": "Trader",
+    "guardian": "Guardian"
+  }
+}
