@@ -281,3 +281,40 @@ Coordinates uploaded...
 # VOID FRONTIER
 
 > “The frontier never ends.”
+
+---
+
+# CÀI ĐẶT VÀ CHẠY GAME
+
+## Project setup (Cài đặt dự án)
+1. **Yêu cầu hệ thống:**
+   - Python 3.8 trở lên.
+   - Các hệ điều hành hỗ trợ: Windows, macOS, Linux.
+2. **Cài đặt thư viện:**
+   - Mở terminal/command prompt tại thư mục dự án (`Void_frontier`).
+   - Cài đặt các thư viện cần thiết bằng pip (đã được liệt kê trong `requirements.txt`):
+     ```bash
+     pip install -r requirements.txt
+     ```
+     *(Các thư viện chính bao gồm `pygame`, `opencv-python`, `moviepy`, `numpy`, v.v.)*
+
+## Compile and run the project (Biên dịch và chạy dự án)
+- Để khởi động trò chơi, hãy đảm bảo bạn đang ở trong thư mục `Void_frontier` (nơi chứa file `main.py`).
+- Chạy lệnh sau:
+  ```bash
+  python main.py
+  ```
+- Trò chơi sẽ mở lên với đoạn video intro và bạn có thể bắt đầu hành trình sinh tồn của mình.
+
+## Deployment (Triển khai/Đóng gói)
+Để đóng gói trò chơi thành file thực thi (ví dụ `.exe` trên Windows) để người khác có thể chạy mà không cần cài đặt môi trường Python:
+1. Cài đặt thư viện `PyInstaller`:
+   ```bash
+   pip install pyinstaller
+   ```
+2. Đóng gói dự án bằng lệnh sau (chạy tại thư mục `Void_frontier`):
+   ```bash
+   pyinstaller --noconfirm --onedir --windowed --add-data "assets;assets" --add-data "audio;audio" --add-data "data;data" main.py
+   ```
+   *(Lưu ý: Nếu bạn đóng gói trên macOS/Linux, dấu `;` ngăn cách thư mục trong `--add-data` cần thay bằng dấu `:`)*
+3. Sau khi quá trình hoàn tất, hãy tìm trong thư mục `dist/main`. Ở đó sẽ chứa file thực thi `main.exe` cùng các tài nguyên đi kèm. Bạn có thể nén toàn bộ thư mục `main` này lại và gửi cho người khác trải nghiệm.
