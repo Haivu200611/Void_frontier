@@ -8,7 +8,10 @@
     "max_stack": 64,
     "value": 5,
     "type": "material",
-    "display_size": [32, 32]
+    "display_size": [
+      32,
+      32
+    ]
   },
   "item_crystal_ore": {
     "id": "item_crystal_ore",
@@ -19,7 +22,10 @@
     "max_stack": 64,
     "value": 14,
     "type": "material",
-    "display_size": [32, 32]
+    "display_size": [
+      32,
+      32
+    ]
   },
   "item_toxic_ore": {
     "id": "item_toxic_ore",
@@ -30,7 +36,10 @@
     "max_stack": 64,
     "value": 12,
     "type": "material",
-    "display_size": [32, 32]
+    "display_size": [
+      32,
+      32
+    ]
   },
   "item_void_fragment": {
     "id": "item_void_fragment",
@@ -41,7 +50,10 @@
     "max_stack": 16,
     "value": 80,
     "type": "crafting_resource",
-    "display_size": [28, 28]
+    "display_size": [
+      28,
+      28
+    ]
   },
   "item_scrap_metal": {
     "id": "item_scrap_metal",
@@ -52,7 +64,10 @@
     "max_stack": 64,
     "value": 4,
     "type": "crafting_resource",
-    "display_size": [32, 32]
+    "display_size": [
+      32,
+      32
+    ]
   },
   "item_battery_core": {
     "id": "item_battery_core",
@@ -63,7 +78,10 @@
     "max_stack": 8,
     "value": 40,
     "type": "crafting_resource",
-    "display_size": [36, 36]
+    "display_size": [
+      36,
+      36
+    ]
   },
   "medkit_small": {
     "id": "medkit_small",
@@ -74,7 +92,10 @@
     "max_stack": 10,
     "value": 20,
     "type": "consumable",
-    "display_size": [24, 28],
+    "display_size": [
+      24,
+      28
+    ],
     "consumable_effects": {
       "heal": 25,
       "cooldown": 2.5
@@ -89,7 +110,10 @@
     "max_stack": 5,
     "value": 45,
     "type": "consumable",
-    "display_size": [28, 32],
+    "display_size": [
+      28,
+      32
+    ],
     "consumable_effects": {
       "heal": 60,
       "cooldown": 4.0
@@ -104,7 +128,10 @@
     "max_stack": 10,
     "value": 25,
     "type": "consumable",
-    "display_size": [24, 32],
+    "display_size": [
+      24,
+      32
+    ],
     "consumable_effects": {
       "oxygen": 45,
       "cooldown": 2.0
@@ -119,7 +146,10 @@
     "max_stack": 10,
     "value": 15,
     "type": "consumable",
-    "display_size": [26, 26],
+    "display_size": [
+      26,
+      26
+    ],
     "consumable_effects": {
       "hunger": 35,
       "cooldown": 1.8
@@ -134,7 +164,10 @@
     "max_stack": 120,
     "value": 2,
     "type": "ammo",
-    "display_size": [16, 16]
+    "display_size": [
+      16,
+      16
+    ]
   },
   "ammo_plasma": {
     "id": "ammo_plasma",
@@ -145,7 +178,10 @@
     "max_stack": 80,
     "value": 6,
     "type": "ammo",
-    "display_size": [18, 20]
+    "display_size": [
+      18,
+      20
+    ]
   },
   "quest_artifact_alpha": {
     "id": "quest_artifact_alpha",
@@ -156,7 +192,10 @@
     "max_stack": 1,
     "value": 0,
     "type": "quest_item",
-    "display_size": [28, 28]
+    "display_size": [
+      28,
+      28
+    ]
   },
   "quest_artifact_beta": {
     "id": "quest_artifact_beta",
@@ -167,7 +206,10 @@
     "max_stack": 1,
     "value": 0,
     "type": "quest_item",
-    "display_size": [28, 28]
+    "display_size": [
+      28,
+      28
+    ]
   },
   "quest_artifact_gamma": {
     "id": "quest_artifact_gamma",
@@ -178,7 +220,10 @@
     "max_stack": 1,
     "value": 0,
     "type": "quest_item",
-    "display_size": [32, 32]
+    "display_size": [
+      32,
+      32
+    ]
   },
   "tool_iron_pickaxe": {
     "id": "tool_iron_pickaxe",
@@ -189,7 +234,10 @@
     "max_stack": 1,
     "value": 35,
     "type": "tool",
-    "display_size": [40, 40],
+    "display_size": [
+      40,
+      40
+    ],
     "tool_stats": {
       "mining_speed": 1.0,
       "mining_power": 1,
@@ -207,11 +255,14 @@
     "max_stack": 1,
     "value": 90,
     "type": "tool",
-    "display_size": [40, 40],
+    "display_size": [
+      40,
+      40
+    ],
     "tool_stats": {
-      "mining_speed": 1.35,
+      "mining_speed": 1.5,
       "mining_power": 2,
-      "cooldown": 0.33,
+      "cooldown": 0.20,
       "efficiency": 1.2,
       "durability": 350
     }
@@ -225,7 +276,10 @@
     "max_stack": 1,
     "value": 180,
     "type": "tool",
-    "display_size": [44, 44],
+    "display_size": [
+      44,
+      44
+    ],
     "tool_stats": {
       "mining_speed": 1.85,
       "mining_power": 3,
@@ -243,7 +297,10 @@
     "max_stack": 1,
     "value": 120,
     "type": "upgrade",
-    "display_size": [36, 36]
+    "display_size": [
+      36,
+      36
+    ]
   },
   "item_meteor_ore": {
     "id": "item_meteor_ore",
@@ -254,7 +311,10 @@
     "max_stack": 64,
     "value": 25,
     "type": "material",
-    "display_size": [36, 36]
+    "display_size": [
+      36,
+      36
+    ]
   },
   "weapon_basic_gun": {
     "id": "weapon_basic_gun",
@@ -265,13 +325,20 @@
     "max_stack": 1,
     "value": 45,
     "type": "weapon",
-    "display_size": [48, 32],
+    "display_size": [
+      48,
+      32
+    ],
     "weapon_stats": {
       "damage": 15,
       "speed": 640,
       "cooldown": 0.25,
       "lifetime": 2.0,
-      "color": [0, 220, 255]
+      "color": [
+        0,
+        220,
+        255
+      ]
     }
   },
   "weapon_plasma_gun": {
@@ -283,13 +350,20 @@
     "max_stack": 1,
     "value": 120,
     "type": "weapon",
-    "display_size": [52, 36],
+    "display_size": [
+      52,
+      36
+    ],
     "weapon_stats": {
       "damage": 28,
       "speed": 750,
       "cooldown": 0.35,
       "lifetime": 1.8,
-      "color": [255, 100, 255]
+      "color": [
+        255,
+        100,
+        255
+      ]
     }
   },
   "weapon_laser_rifle": {
@@ -301,13 +375,20 @@
     "max_stack": 1,
     "value": 250,
     "type": "weapon",
-    "display_size": [56, 32],
+    "display_size": [
+      56,
+      32
+    ],
     "weapon_stats": {
       "damage": 45,
       "speed": 1200,
       "cooldown": 0.6,
       "lifetime": 1.5,
-      "color": [255, 50, 50]
+      "color": [
+        255,
+        50,
+        50
+      ]
     }
   },
   "quest_ship_repair_kit": {
@@ -319,6 +400,9 @@
     "max_stack": 1,
     "value": 0,
     "type": "quest_item",
-    "display_size": [40, 40]
+    "display_size": [
+      40,
+      40
+    ]
   }
 }
