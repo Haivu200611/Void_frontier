@@ -29,6 +29,8 @@ class WorldEventManager:
     def _apply_event_effects(self, dt, player, projectile_pool):
         """Apply real-time effects based on the active event."""
         if self.active_event == "meteor_shower":
+            if player is None:
+                return
             # Spawn meteors from top
             if random.random() < 0.05:
                 mx = random.uniform(player.x - 1000, player.x + 1000)
@@ -49,7 +51,7 @@ class WorldEventManager:
 
     def trigger_random_event(self):
         # Filter events by current world
-        current_world = getattr(self.world_manager, 'current_world', 'toxic_plains')
+        current_world = getattr(self.world_manager, 'current_world_id', 'toxic_plains')
         
         event_map = {
             "toxic_plains": ["meteor_shower", "toxic_rain", "enemy_wave"],
@@ -75,4 +77,3 @@ class WorldEventManager:
         text = f"EVENT: {self.active_event.replace('_', ' ').upper()}"
         surf = font.render(text, True, (255, 50, 50))
         surface.blit(surf, (WINDOW_WIDTH // 2 - surf.get_width() // 2, 80))
-

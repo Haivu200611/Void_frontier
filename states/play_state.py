@@ -339,7 +339,7 @@ class PlayState(State):
         self.player.status_speed_multiplier = self.status_effects.get_speed_multiplier()
 
         self.boss_manager.update(scaled_dt)
-        self.world_event_manager.update(scaled_dt)
+        self.world_event_manager.update(scaled_dt, player=self.player, projectile_pool=self.projectile_pool)
         self.portal_manager.update(scaled_dt)
 
         if not any_auto:
