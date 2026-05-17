@@ -44,7 +44,7 @@ ORE_PROFILES: dict[str, OreProfile] = {
     OreType.CRYSTAL: OreProfile(
         ore_type=OreType.CRYSTAL,
         max_health=170,
-        hardness=2,
+        hardness=1,
         drop_id="item_crystal_ore",
         drop_amount=(1, 2),
         rarity=0.28,
@@ -77,7 +77,7 @@ ORE_PROFILES: dict[str, OreProfile] = {
     OreType.METEOR: OreProfile(
         ore_type=OreType.METEOR,
         max_health=220,
-        hardness=2,
+        hardness=1,
         drop_id="item_meteor_ore",
         drop_amount=(1, 2),
         rarity=0.25,

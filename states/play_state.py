@@ -973,19 +973,20 @@ class PlayState(State):
                 dialogue = npc.interact(self.progression_manager)
                 self._show_npc_trade_panel(npc, dialogue)
 
-                if npc.npc_type in ["scientist", "survivor"]:
-                    if self.inventory.has_item("item_meteor_ore", 15):
-                        # Upgrade gun first, then pickaxe.
-                        if not self.inventory.has_item("weapon_plasma_gun", 1):
-                            if self.trading_system.trade_for_upgrade_gun():
-                                self._set_ui_message("Upgraded to Plasma Gun!")
-                        elif not self.inventory.has_item("tool_crystal_pickaxe", 1):
-                            if self.trading_system.trade_for_upgrade_pickaxe():
-                                self._set_ui_message("Upgraded to Crystal Pickaxe!")
-                        else:
-                            self._set_ui_message("You already have all upgrades from me.")
+                if npc.npc_type == "scientist":
+                    if self.inventory.has_item("tool_crystal_pickaxe", 1):
+                        self._set_ui_message("NPC: 'You already have my Crystal Pickaxe.'")
+                    elif self.trading_system.trade_for_upgrade_pickaxe():
+                        self._set_ui_message("Upgraded to Crystal Pickaxe!")
                     else:
-                        self._set_ui_message("NPC: 'I need 15 Meteor Ore for upgrades.'")
+                        self._set_ui_message("NPC: 'Bring 10 Iron Ore, 5 Crystal Ore, 1 Meteor Ore.'")
+                elif npc.npc_type == "survivor":
+                    if self.inventory.has_item("weapon_plasma_gun", 1):
+                        self._set_ui_message("NPC: 'You already have my Plasma Gun.'")
+                    elif self.trading_system.trade_for_upgrade_gun():
+                        self._set_ui_message("Upgraded to Plasma Gun!")
+                    else:
+                        self._set_ui_message("NPC: 'Bring 10 Toxic Ore, 2 Crystal Ore, 3 Meteor Ore.'")
                 elif npc.npc_type == "trader":
                     if self.trading_system.perform_trade_for_repair_kit():
                         self._set_ui_message("Received Ship Repair Kit! Return to Chapter 1.")
@@ -1288,7 +1289,7 @@ class PlayState(State):
 
         for portal in self.portal_manager.portals:
             px = int(portal.x - ox)
-            cho tôi biết các npc phải đổi gì với họ để lấy vũ khí nâng cấp và ở các world 1, 2, 3, 4 thì đào được gìpy = int(portal.y - oy)
+            py = int(portal.y - oy)
             pygame.draw.circle(surface, (220, 220, 255), (px, py), 40, 1)
         
         # AI debug visualization
@@ -1595,18 +1596,24 @@ class PlayState(State):
                 self.npc_trade_panel_active = False
 
     def _show_npc_trade_panel(self, npc: NPC, dialogue: str) -> None:
-        ore_count = 0
-        for stack in self.inventory.slots:
-            if stack is None:
-                continue
-            if stack.item_id == "item_meteor_ore":
-                ore_count += stack.count
-
         self.npc_trade_panel_title = f"{npc.name} ({npc.npc_type.title()})"
         self.npc_trade_panel_lines = [dialogue]
-        if npc.npc_type in ("scientist", "survivor"):
-            self.npc_trade_panel_lines.append(f"Trade: 15 Meteor Ore (you have {ore_count})")
-            self.npc_trade_panel_lines.append("Reward: Plasma Gun / Crystal Pickaxe")
+        if npc.npc_type == "scientist":
+            iron = self.inventory.count_item("item_iron_ore")
+            crystal = self.inventory.count_item("item_crystal_ore")
+            meteor = self.inventory.count_item("item_meteor_ore")
+            self.npc_trade_panel_lines.append(
+                f"Trade: Iron {iron}/10, Crystal {crystal}/5, Meteor {meteor}/1"
+            )
+            self.npc_trade_panel_lines.append("Reward: Crystal Pickaxe")
+        elif npc.npc_type == "survivor":
+            toxic = self.inventory.count_item("item_toxic_ore")
+            crystal = self.inventory.count_item("item_crystal_ore")
+            meteor = self.inventory.count_item("item_meteor_ore")
+            self.npc_trade_panel_lines.append(
+                f"Trade: Toxic {toxic}/10, Crystal {crystal}/2, Meteor {meteor}/3"
+            )
+            self.npc_trade_panel_lines.append("Reward: Plasma Gun")
         elif npc.npc_type == "trader":
             self.npc_trade_panel_lines.append(f"Trade: 3 Mystery Items (tracked: {self.mystery_item_count})")
             self.npc_trade_panel_lines.append("Reward: Ship Repair Kit")

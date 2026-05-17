@@ -24,17 +24,31 @@ class TradingSystem:
         return False
 
     def trade_for_upgrade_pickaxe(self):
-        """Trade 15 Meteor Ore for Upgraded Pickaxe"""
-        if self.inventory.has_item("item_meteor_ore", 15):
-            self.inventory.remove_item("item_meteor_ore", 15)
+        """Scientist trade: 10 Iron Ore + 5 Crystal Ore + 1 Meteor Ore for Crystal Pickaxe."""
+        requirements = {
+            "item_iron_ore": 10,
+            "item_crystal_ore": 5,
+            "item_meteor_ore": 1,
+        }
+        if self.inventory.has_items(requirements):
+            self.inventory.remove_item("item_iron_ore", 10)
+            self.inventory.remove_item("item_crystal_ore", 5)
+            self.inventory.remove_item("item_meteor_ore", 1)
             self.inventory.add_item("tool_crystal_pickaxe", 1)
             return True
         return False
 
     def trade_for_upgrade_gun(self):
-        """Trade 15 Meteor Ore for Upgraded Gun"""
-        if self.inventory.has_item("item_meteor_ore", 15):
-            self.inventory.remove_item("item_meteor_ore", 15)
+        """Survivor trade: 10 Toxic Ore + 2 Crystal Ore + 3 Meteor Ore for Plasma Gun."""
+        requirements = {
+            "item_toxic_ore": 10,
+            "item_crystal_ore": 2,
+            "item_meteor_ore": 3,
+        }
+        if self.inventory.has_items(requirements):
+            self.inventory.remove_item("item_toxic_ore", 10)
+            self.inventory.remove_item("item_crystal_ore", 2)
+            self.inventory.remove_item("item_meteor_ore", 3)
             self.inventory.add_item("weapon_plasma_gun", 1)
             return True
         return False

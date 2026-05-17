@@ -33,13 +33,13 @@ class NPC(Entity):
         if self.npc_type == "scientist":
             return [
                 "Data confirmed. The portal matrix is stable.",
-                "Bring me 15 Meteor Ore and I will upgrade your equipment.",
+                "Bring 10 Iron Ore, 5 Crystal Ore, and 1 Meteor Ore.",
                 "Proceed to the next chapter when you are ready.",
             ]
         if self.npc_type == "survivor":
             return [
                 "I made it through the toxic caves... barely.",
-                "I can still trade upgrades for 15 Meteor Ore.",
+                "Trade me 10 Toxic Ore, 2 Crystal Ore, and 3 Meteor Ore.",
                 "Stay alert. The next region is worse.",
             ]
         if self.npc_type == "trader":

@@ -46,6 +46,12 @@ class MiningSystem:
             self._set_feedback("No ore in range")
             return False
 
+        # Design rule: hardness 2 ores can only be mined by Crystal Pickaxe.
+        if target.hardness == 2 and (tool_stack is None or tool_stack.item_id != "tool_crystal_pickaxe"):
+            self.cooldown_timer = max(0.08, stats.cooldown)
+            self._set_feedback("Crystal Pickaxe required")
+            return False
+
         damage = self.base_damage * stats.mining_speed * stats.efficiency
         mined = target.take_mining_damage(damage, stats.mining_power)
         self.cooldown_timer = max(0.08, stats.cooldown)
