@@ -135,6 +135,9 @@ class DummyEnemy(Entity):
         # Keep attack box always synced
         self.attack_box.update(self.x, self.y)
 
+        self._update_animations(dt)
+
+    def _update_animations(self, dt: float) -> None:
         # Animation state mapping for all enemies:
         # attack, death, hurt, idle, move.
         if self.animation_player:

@@ -6,7 +6,7 @@ from settings import *
 
 class VoidGuardian(Boss):
     def __init__(self, x: float, y: float):
-        super().__init__(x, y, name="VOID GUARDIAN")
+        super().__init__(x, y, name="VOID GUARDIAN", boss_type="boss_4_void_guardian")
         self.max_health = 4000.0
         self.health = self.max_health
         self.color = (150, 0, 255)
@@ -15,25 +15,29 @@ class VoidGuardian(Boss):
         self.state_timer = 3.0
         
         self.reward = "artifact_3"
-        
-        from rendering.sprite_renderer import SpriteRenderer
-        self.sprite_renderer = SpriteRenderer()
-        self.sprite_renderer.load_sprite("boss", "bosses/boss_4_void_guardian.png")
 
     def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
         if self.hurtbox and self.hurtbox.should_blink():
             return
             
+        flip_x = self.velocity_x < 0
         import time
         pulse = math.sin(time.time() * 5) * 0.1
         pulse_w = self.width * (1.0 + pulse)
         pulse_h = self.height * (1.0 + pulse)
         
         tint = (255, 100, 255) if self.phase == 2 else None
+        if self._flash_timer > 0:
+            tint = (255, 150, 150)
+            
+        sprite = "boss"
+        if hasattr(self, 'animation_player') and self.animation_player and self.animation_player.get_current_sprite():
+            sprite = self.animation_player.get_current_sprite()
+            
         self.sprite_renderer.render_sprite_to_size(
-            surface, "boss", self.x, self.y,
+            surface, sprite, self.x, self.y,
             pulse_w, pulse_h,
-            offset_x, offset_y, tint=tint
+            offset_x, offset_y, flip_x=flip_x, tint=tint
         )
 
     def update(self, dt: float, player=None, projectile_pool=None) -> None:
@@ -75,7 +79,7 @@ class VoidGuardian(Boss):
                 self.state = "idle"
                 self.state_timer = 1.0
                 
-        elif self.state == "beam":
+        elif self.state == "blast":
             self.speed = 10.0
             if player and projectile_pool:
                 # Phase 2: More frequent and powerful beams
@@ -92,7 +96,7 @@ class VoidGuardian(Boss):
                 self.state = "idle"
                 self.state_timer = 2.0
                 
-        elif self.state == "explosion":
+        elif self.state == "summon":
             self.speed = 0.0
             if self.state_timer <= 0:
                 if projectile_pool:
@@ -107,12 +111,12 @@ class VoidGuardian(Boss):
                 self.state_timer = 2.5
 
     def _choose_next_attack(self, player):
-        attacks = ["teleport", "beam", "explosion"]
+        attacks = ["teleport", "blast", "summon"]
         self.state = random.choice(attacks)
         
         if self.state == "teleport":
             self.state_timer = 0.5
-        elif self.state == "beam":
+        elif self.state == "blast":
             self.state_timer = 3.0
-        elif self.state == "explosion":
+        elif self.state == "summon":
             self.state_timer = 1.5

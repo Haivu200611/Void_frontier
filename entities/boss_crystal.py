@@ -6,7 +6,7 @@ from settings import *
 
 class CrystalTitan(Boss):
     def __init__(self, x: float, y: float):
-        super().__init__(x, y, name="CRYSTAL TITAN")
+        super().__init__(x, y, name="CRYSTAL TITAN", boss_type="boss_2_crystal_titan")
         self.max_health = 2000.0
         self.health = self.max_health
         self.color = (50, 200, 255)
@@ -15,20 +15,24 @@ class CrystalTitan(Boss):
         self.state_timer = 2.5
         
         self.reward = "artifact_1"
-        
-        from rendering.sprite_renderer import SpriteRenderer
-        self.sprite_renderer = SpriteRenderer()
-        self.sprite_renderer.load_sprite("boss", "bosses/boss_2_crystal_titan.png")
 
     def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
         if self.hurtbox and self.hurtbox.should_blink():
             return
             
+        flip_x = self.velocity_x < 0
         tint = (200, 255, 255) if self.phase == 2 else None
+        if self._flash_timer > 0:
+            tint = (255, 150, 150)
+            
+        sprite = "boss"
+        if hasattr(self, 'animation_player') and self.animation_player and self.animation_player.get_current_sprite():
+            sprite = self.animation_player.get_current_sprite()
+
         self.sprite_renderer.render_sprite_to_size(
-            surface, "boss", self.x, self.y,
+            surface, sprite, self.x, self.y,
             self.width, self.height,
-            offset_x, offset_y, tint=tint
+            offset_x, offset_y, flip_x=flip_x, tint=tint
         )
 
     def update(self, dt: float, player=None, projectile_pool=None) -> None:

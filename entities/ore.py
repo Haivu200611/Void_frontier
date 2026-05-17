@@ -111,6 +111,52 @@ class Ore(Entity):
         self.is_dead = False
         self.respawn_timer = 0.0
         self._feedback_timer = 0.0
+        
+        self.break_frames: list[str] = []
+        from rendering.sprite_renderer import SpriteRenderer
+        self.sprite_renderer = SpriteRenderer()
+        self._load_break_frames()
+
+    def _load_break_frames(self) -> None:
+        import os
+        import re
+        
+        folder_map = {
+            OreType.IRON: "iron_ore",
+            OreType.CRYSTAL: "crystal_ore",
+            OreType.TOXIC: "toxic_ore",
+            OreType.METEOR: "meteor_ore",
+            OreType.VOID: "void_ore"
+        }
+        folder_name = folder_map.get(self.ore_type, "iron_ore")
+        
+        base_dir = os.path.join("assets", "images", "ore", folder_name)
+        if not os.path.isdir(base_dir):
+            # Fallback static sprite
+            self.sprite_renderer.load_sprite("ore_static", "items/resources/resources.png")
+            return
+            
+        files = [
+            f for f in os.listdir(base_dir)
+            if os.path.isfile(os.path.join(base_dir, f))
+            and f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))
+        ]
+        
+        def key_fn(name: str) -> int:
+            m = re.search(r"(\d+)", name)
+            return int(m.group(1)) if m else 0
+            
+        files = sorted(files, key=key_fn)
+        
+        for f in files:
+            abs_path = os.path.abspath(os.path.join(base_dir, f))
+            cache_key = f"ore_{folder_name}_{f}"
+            surf = self.sprite_renderer.load_sprite(cache_key, abs_path)
+            if surf:
+                self.break_frames.append(cache_key)
+                
+        if not self.break_frames:
+            self.sprite_renderer.load_sprite("ore_static", "items/resources/resources.png")
 
     def take_mining_damage(self, amount: float, mining_power: int) -> bool:
         if self.is_dead:
@@ -140,11 +186,6 @@ class Ore(Entity):
                 self.health = self.max_health
 
     def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
-        if not hasattr(self, 'sprite_renderer'):
-            from rendering.sprite_renderer import SpriteRenderer
-            self.sprite_renderer = SpriteRenderer()
-            self.sprite_renderer.load_sprite("ore", "items/resources/resources.png")
-
         if self.is_dead:
             # Render ghost/empty node
             rect = self.rect.copy()
@@ -157,10 +198,18 @@ class Ore(Entity):
         if self._feedback_timer > 0:
             base_color = tuple(min(255, c + 80) for c in self.color)
 
+        sprite = "ore_static"
+        if self.break_frames:
+            ratio = max(0.0, min(1.0, self.health / self.max_health))
+            idx = int((1.0 - ratio) * len(self.break_frames))
+            idx = min(idx, len(self.break_frames) - 1)
+            sprite = self.break_frames[idx]
+
         # Draw sprite with tint
-        self.sprite_renderer.render_sprite(
-            surface, "ore", self.x, self.y,
-            offset_x, offset_y, scale=1.0, tint=base_color
+        self.sprite_renderer.render_sprite_to_size(
+            surface, sprite, self.x, self.y,
+            self.width, self.height,
+            offset_x, offset_y, tint=base_color
         )
 
         if self.health < self.max_health:

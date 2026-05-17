@@ -1441,11 +1441,34 @@ class PlayState(State):
             stack = self.inventory.slots[idx]
             if stack:
                 item = ItemDatabase.get_item(stack.item_id)
-                color = (160, 180, 220)
-                if item:
-                    color = self._rarity_color(item.rarity)
                 item_rect = rect.inflate(-12, -12)
-                pygame.draw.rect(surface, color, item_rect)
+                
+                # Calculate display size based on item's display_size
+                display_width = item_rect.width
+                display_height = item_rect.height
+                if item and hasattr(item, 'display_size') and item.display_size:
+                    item_w, item_h = item.display_size
+                    # Scale to fit in slot while maintaining aspect ratio
+                    max_dim = max(item_rect.width, item_rect.height)
+                    scale_w = item_rect.width / max(1, item_w)
+                    scale_h = item_rect.height / max(1, item_h)
+                    scale = min(scale_w, scale_h, 1.0)  # Don't upscale
+                    display_width = int(item_w * scale)
+                    display_height = int(item_h * scale)
+                
+                if item and item.icon_path:
+                    from rendering.sprite_renderer import get_sprite_renderer
+                    renderer = get_sprite_renderer()
+                    renderer.load_sprite(item.id, item.icon_path)
+                    renderer.render_sprite_to_size(
+                        surface, item.id, item_rect.centerx, item_rect.centery,
+                        display_width, display_height
+                    )
+                else:
+                    color = (160, 180, 220)
+                    if item:
+                        color = self._rarity_color(item.rarity)
+                    pygame.draw.rect(surface, color, item_rect)
 
                 count_text = self.font.render(str(stack.count), True, (255, 255, 255))
                 surface.blit(count_text, (rect.right - count_text.get_width() - 4, rect.bottom - 18))
@@ -1475,7 +1498,30 @@ class PlayState(State):
             stack = self.inventory.equipment[key]
             if stack:
                 item = ItemDatabase.get_item(stack.item_id)
-                pygame.draw.rect(surface, self._rarity_color(item.rarity if item else "Common"), rect.inflate(-12, -12))
+                item_rect = rect.inflate(-12, -12)
+                
+                if item and item.icon_path:
+                    from rendering.sprite_renderer import get_sprite_renderer
+                    renderer = get_sprite_renderer()
+                    renderer.load_sprite(item.id, item.icon_path)
+                    
+                    # Use display_size from item
+                    display_width = item_rect.width
+                    display_height = item_rect.height
+                    if hasattr(item, 'display_size') and item.display_size:
+                        item_w, item_h = item.display_size
+                        scale_w = item_rect.width / max(1, item_w)
+                        scale_h = item_rect.height / max(1, item_h)
+                        scale = min(scale_w, scale_h, 1.0)
+                        display_width = int(item_w * scale)
+                        display_height = int(item_h * scale)
+                    
+                    renderer.render_sprite_to_size(
+                        surface, item.id, item_rect.centerx, item_rect.centery,
+                        display_width, display_height
+                    )
+                else:
+                    pygame.draw.rect(surface, self._rarity_color(item.rarity if item else "Common"), item_rect)
 
         if self.inventory.drag_payload:
             drag = self.inventory.drag_payload.stack

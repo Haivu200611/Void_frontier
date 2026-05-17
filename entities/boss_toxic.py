@@ -6,7 +6,7 @@ from settings import *
 
 class ToxicWorm(Boss):
     def __init__(self, x: float, y: float):
-        super().__init__(x, y, name="TOXIC WORM")
+        super().__init__(x, y, name="TOXIC WORM", boss_type="boss_3_toxic_worm")
         self.max_health = 2500.0
         self.health = self.max_health
         self.color = (50, 255, 50)
@@ -15,22 +15,25 @@ class ToxicWorm(Boss):
         self.state_timer = 2.0
         
         self.reward = "artifact_2"
-        
-        from rendering.sprite_renderer import SpriteRenderer
-        self.sprite_renderer = SpriteRenderer()
-        self.sprite_renderer.load_sprite("boss", "bosses/boss_3_toxic_worm.png")
 
     def render(self, surface: pygame.Surface, offset_x: int = 0, offset_y: int = 0) -> None:
         if self.hurtbox and self.hurtbox.should_blink():
             return
             
-        alpha = 100 if self.state == "tunneling" else 255
+        flip_x = self.velocity_x < 0
+        alpha = 100 if self.state == "burrow" else 255
         tint = (150, 255, 150) if self.phase == 2 else None
-        
+        if self._flash_timer > 0:
+            tint = (255, 150, 150)
+            
+        sprite = "boss"
+        if hasattr(self, 'animation_player') and self.animation_player and self.animation_player.get_current_sprite():
+            sprite = self.animation_player.get_current_sprite()
+            
         self.sprite_renderer.render_sprite_to_size(
-            surface, "boss", self.x, self.y,
+            surface, sprite, self.x, self.y,
             self.width, self.height,
-            offset_x, offset_y, tint=tint, alpha=alpha
+            offset_x, offset_y, flip_x=flip_x, tint=tint, alpha=alpha
         )
 
     def update(self, dt: float, player=None, projectile_pool=None) -> None:
@@ -59,7 +62,7 @@ class ToxicWorm(Boss):
             if self.state_timer <= 0:
                 self._choose_next_attack(player)
                 
-        elif self.state == "tunneling":
+        elif self.state == "burrow":
             self.speed = 180.0 if self.phase == 1 else 240.0
             self.hurtbox.active = False # Invulnerable
             self.color = (30, 100, 30)
@@ -114,10 +117,10 @@ class ToxicWorm(Boss):
                 self.state_timer = 2.0
 
     def _choose_next_attack(self, player):
-        attacks = ["tunneling", "spit"]
+        attacks = ["burrow", "spit"]
         self.state = random.choice(attacks)
         
-        if self.state == "tunneling":
+        if self.state == "burrow":
             self.state_timer = 3.0
         elif self.state == "spit":
             self.state_timer = 0.8

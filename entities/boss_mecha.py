@@ -7,9 +7,7 @@ from settings import *
 
 class MechaBeast(Boss):
     def __init__(self, x: float, y: float):
-        super().__init__(x, y, name="MECHA BEAST")
-        self.sprite_renderer = SpriteRenderer()
-        self.sprite_renderer.load_sprite("boss", "bosses/boss_1_mecha_beast.png")
+        super().__init__(x, y, name="MECHA BEAST", boss_type="boss_1_mecha_beast")
         self.max_health = 1500.0
         self.health = self.max_health
         self.color = (180, 50, 50)
@@ -108,10 +106,17 @@ class MechaBeast(Boss):
         if self.hurtbox and self.hurtbox.should_blink():
             return
             
-        # Tint boss based on phase
+        flip_x = self.velocity_x < 0
         tint = (255, 100, 100) if self.phase == 2 else None
+        if self._flash_timer > 0:
+            tint = (255, 150, 150)
+            
+        sprite = "boss"
+        if hasattr(self, 'animation_player') and self.animation_player and self.animation_player.get_current_sprite():
+            sprite = self.animation_player.get_current_sprite()
+
         self.sprite_renderer.render_sprite_to_size(
-            surface, "boss", self.x, self.y,
+            surface, sprite, self.x, self.y,
             self.width, self.height,
-            offset_x, offset_y, tint=tint
+            offset_x, offset_y, flip_x=flip_x, tint=tint
         )

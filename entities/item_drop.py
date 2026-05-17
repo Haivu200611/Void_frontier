@@ -45,20 +45,34 @@ class ItemDrop:
         if not self.active:
             return
 
-        if not hasattr(self, 'sprite_renderer'):
-            from rendering.sprite_renderer import SpriteRenderer
-            self.sprite_renderer = SpriteRenderer()
-            # If it's a resource, use the rock sprite
-            if self.item_id and "ore" in self.item_id:
-                self.sprite_renderer.load_sprite("item", "items/resources/resources.png")
-            else:
-                # Fallback to a generic box for now or a generic item sprite if we had one
-                pass
-
-        if hasattr(self, 'sprite_renderer') and self.sprite_renderer.sprite_cache.get("item"):
-            self.sprite_renderer.render_sprite(
-                surface, "item", self.x, self.y,
-                offset_x, offset_y, scale=0.4, tint=self.color
+        from systems.items import ItemDatabase
+        from rendering.sprite_renderer import get_sprite_renderer
+        
+        renderer = get_sprite_renderer()
+        sprite_key = None
+        display_width = self.width * 2
+        display_height = self.height * 2
+        
+        if self.item_id:
+            item_data = ItemDatabase.get_item(self.item_id)
+            if item_data:
+                # Use item's display_size if available
+                if hasattr(item_data, 'display_size') and item_data.display_size:
+                    display_width, display_height = item_data.display_size
+                
+                if item_data.icon_path:
+                    sprite_key = self.item_id
+                    renderer.load_sprite(sprite_key, item_data.icon_path)
+                
+        if not sprite_key and self.item_id and "ore" in self.item_id:
+            sprite_key = "generic_ore"
+            renderer.load_sprite(sprite_key, "items/resources/resources.png")
+            
+        if sprite_key and renderer.sprite_cache.get(sprite_key):
+            renderer.render_sprite_to_size(
+                surface, sprite_key, self.x, self.y,
+                display_width, display_height,
+                offset_x, offset_y, tint=self.color if sprite_key == "generic_ore" else None
             )
         else:
             # Fallback to rect
@@ -71,7 +85,7 @@ class ItemDrop:
 
 class HealthDrop(ItemDrop):
     def __init__(self, x: float, y: float):
-        super().__init__(x, y, 16, 16, color=(255, 50, 50))
+        super().__init__(x, y, 16, 16, color=(255, 50, 50), item_id="medkit_small")
         self.heal_amount = 20
 
     def apply(self, player) -> None:
@@ -81,7 +95,7 @@ class HealthDrop(ItemDrop):
 
 class OxygenDrop(ItemDrop):
     def __init__(self, x: float, y: float):
-        super().__init__(x, y, 16, 16, color=(0, 200, 255))
+        super().__init__(x, y, 16, 16, color=(0, 200, 255), item_id="oxygen_pack")
         self.oxygen_amount = 25
 
     def apply(self, player) -> None:
@@ -91,7 +105,7 @@ class OxygenDrop(ItemDrop):
 
 class FoodDrop(ItemDrop):
     def __init__(self, x: float, y: float):
-        super().__init__(x, y, 16, 16, color=(255, 180, 50))
+        super().__init__(x, y, 16, 16, color=(255, 180, 50), item_id="food_pack")
         self.food_amount = 20
 
     def apply(self, player) -> None:

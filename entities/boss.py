@@ -10,7 +10,8 @@ class Boss(DummyEnemy):
     Inherits from DummyEnemy; driven by EnemyAI with an aggro_radius override.
     """
 
-    def __init__(self, x: float, y: float, name: str = "MECHA BEAST"):
+    def __init__(self, x: float, y: float, name: str = "MECHA BEAST", boss_type: str = "boss_1_mecha_beast"):
+        self.boss_type = boss_type
         super().__init__(x, y)
 
         self.name = name
@@ -47,6 +48,56 @@ class Boss(DummyEnemy):
         self.attack_cooldown = 0.0
         self.state_timer = 0.0
         self.rage_mode = False
+        
+        self._load_boss_animations()
+
+    def _load_enemy_animations(self) -> None:
+        # Override to prevent loading standard enemy animations
+        pass
+        
+    def _load_boss_animations(self) -> None:
+        import os
+        from rendering.animation_player import Animation, Frame
+        
+        # Clear any existing animations (just in case)
+        if hasattr(self, 'animation_player') and self.animation_player:
+            self.animation_player.animations.clear()
+            
+        base_dir = os.path.join("assets", "images", "bosses", self.boss_type)
+        if not os.path.isdir(base_dir):
+            return
+            
+        # Standard fallback frame
+        fallback_frame = None
+            
+        for action in os.listdir(base_dir):
+            action_dir = os.path.join(base_dir, action)
+            if not os.path.isdir(action_dir):
+                continue
+                
+            files = [
+                f for f in os.listdir(action_dir)
+                if os.path.isfile(os.path.join(action_dir, f))
+                and f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))
+            ]
+            files = self._sort_files_numeric(files)
+            frames = []
+            
+            for f in files:
+                abs_path = os.path.abspath(os.path.join(action_dir, f))
+                cache_key = f"boss_{self.boss_type}_{action}_{f}"
+                surf = self.sprite_renderer.load_sprite(cache_key, abs_path)
+                if surf:
+                    frames.append(Frame(surf, 1.0 / 12.0))
+                    if fallback_frame is None:
+                        fallback_frame = surf
+                
+            if frames:
+                loop = action not in ("death", "hurt")
+                self.animation_player.add_animation(Animation(action, frames, loop=loop))
+                
+        if fallback_frame:
+            self.sprite_renderer.sprite_cache["boss"] = fallback_frame
 
     # ------------------------------------------------------------------
     # Update
@@ -63,6 +114,29 @@ class Boss(DummyEnemy):
             self.speed = 140.0
             self.attack_box.damage = 30
 
+    def _update_animations(self, dt: float) -> None:
+        if not hasattr(self, 'animation_player') or not self.animation_player:
+            return
+            
+        speed = (self.velocity_x * self.velocity_x + self.velocity_y * self.velocity_y) ** 0.5
+        anim_state = self.state.lower()
+        
+        if self.is_dead and "death" in self.animation_player.animations:
+            anim_state = "death"
+        elif self._hurt_anim_timer > 0 and "hurt" in self.animation_player.animations:
+            anim_state = "hurt"
+        elif anim_state not in self.animation_player.animations:
+            # Fallbacks if specific state animation missing
+            if speed > 0.1 and "move" in self.animation_player.animations:
+                anim_state = "move"
+            elif "idle" in self.animation_player.animations:
+                anim_state = "idle"
+                
+        if anim_state in self.animation_player.animations:
+            self.animation_player.play(anim_state)
+            
+        self.animation_player.update(dt)
+
     # ------------------------------------------------------------------
     # Rendering
     # ------------------------------------------------------------------
@@ -72,24 +146,17 @@ class Boss(DummyEnemy):
         if self.hurtbox and self.hurtbox.should_blink():
             return
 
-        boss_img = {
-            "mecha_beast": "bosses/boss_1_mecha_beast.png",
-            "crystal_titan": "bosses/boss_2_crystal_titan.png",
-            "toxic_worm": "bosses/boss_3_toxic_worm.png",
-            "void_guardian": "bosses/boss_4_void_guardian.png",
-        }.get(getattr(self, 'boss_type', ''), "bosses/boss_1_mecha_beast.png")
-        
-        # Load on demand or pre-load in init
-        if not hasattr(self, 'sprite_renderer'):
-            from rendering.sprite_renderer import SpriteRenderer
-            self.sprite_renderer = SpriteRenderer()
-            self.sprite_renderer.load_sprite("boss", boss_img)
-
+        flip_x = self.velocity_x < 0
         tint = (255, 150, 150) if self._flash_timer > 0 else None
+        
+        sprite = "boss"
+        if hasattr(self, 'animation_player') and self.animation_player and self.animation_player.get_current_sprite():
+            sprite = self.animation_player.get_current_sprite()
+
         self.sprite_renderer.render_sprite_to_size(
-            surface, "boss", self.x, self.y,
+            surface, sprite, self.x, self.y,
             self.width, self.height,
-            offset_x, offset_y, tint=tint
+            offset_x, offset_y, flip_x=flip_x, tint=tint
         )
 
         # Name tag
