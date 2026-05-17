@@ -5,6 +5,7 @@ import pygame
 
 from core.state_machine import State
 from settings import *
+from audio.audio_manager import get_audio_manager
 
 
 class GameOverState(State):
@@ -19,6 +20,15 @@ class GameOverState(State):
 
         self.options = ["RETRY", "MAIN MENU"]
         self.selected_index = 0
+
+        # Audio setup
+        self.audio_manager = get_audio_manager()
+        # Stop current music and play death sound
+        try:
+            self.audio_manager.stop_music(fade_out=0.5)
+            self.audio_manager.play_sfx("death_player.wav")
+        except Exception:
+            pass
 
         self.particles = []
         for _ in range(100):
@@ -38,13 +48,25 @@ class GameOverState(State):
             if event.type == pygame.KEYDOWN:
                 if event.key in (pygame.K_UP, pygame.K_w, pygame.K_LEFT, pygame.K_a):
                     self.selected_index = (self.selected_index - 1) % len(self.options)
+                    try:
+                        self.audio_manager.play_ui_sound("button_hover.wav", volume=0.7)
+                    except Exception:
+                        pass
                 elif event.key in (pygame.K_DOWN, pygame.K_s, pygame.K_RIGHT, pygame.K_d):
                     self.selected_index = (self.selected_index + 1) % len(self.options)
+                    try:
+                        self.audio_manager.play_ui_sound("button_hover.wav", volume=0.7)
+                    except Exception:
+                        pass
                 elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
                     self._confirm()
             elif event.type == pygame.MOUSEMOTION:
                 idx = self._option_from_mouse(event.pos)
-                if idx is not None:
+                if idx is not None and idx != self.selected_index:
+                    try:
+                        self.audio_manager.play_ui_sound("button_hover.wav", volume=0.7)
+                    except Exception:
+                        pass
                     self.selected_index = idx
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 idx = self._option_from_mouse(event.pos)
@@ -53,6 +75,10 @@ class GameOverState(State):
                     self._confirm()
 
     def _confirm(self):
+        try:
+            self.audio_manager.play_ui_sound("button_click.wav", volume=0.8)
+        except Exception:
+            pass
         option = self.options[self.selected_index]
         if option == "RETRY":
             self.engine.state_machine.change_state("Play")

@@ -155,6 +155,51 @@ class SpriteRenderer:
         # Blit to surface
         rect = rendered.get_rect(center=(screen_x, screen_y))
         surface.blit(rendered, rect)
+
+    def render_sprite_to_size(self, surface: pygame.Surface, sprite_input,
+                              x: float, y: float,
+                              target_w: float, target_h: float,
+                              offset_x: float = 0, offset_y: float = 0,
+                              flip_x: bool = False, flip_y: bool = False,
+                              alpha: int = 255, rotation: float = 0,
+                              tint=None) -> None:
+        """
+        Render a sprite scaled to fit *exactly* within ``target_w × target_h``
+        while keeping its aspect ratio (uses the larger axis to compute scale).
+        """
+        sprite = sprite_input
+        if isinstance(sprite_input, str):
+            sprite = self.load_sprite(sprite_input)
+        if sprite is None:
+            return
+
+        rendered = sprite.copy()
+
+        if tint:
+            rendered = self.tint_sprite(rendered, tint)
+
+        # Compute scale to fit target size while keeping aspect ratio
+        orig_w = rendered.get_width()
+        orig_h = rendered.get_height()
+        if orig_w > 0 and orig_h > 0:
+            scale = min(target_w / orig_w, target_h / orig_h)
+            new_w = max(1, int(orig_w * scale))
+            new_h = max(1, int(orig_h * scale))
+            rendered = pygame.transform.scale(rendered, (new_w, new_h))
+
+        if flip_x or flip_y:
+            rendered = pygame.transform.flip(rendered, flip_x, flip_y)
+
+        if rotation != 0:
+            rendered = pygame.transform.rotate(rendered, rotation)
+
+        if alpha < 255:
+            rendered.set_alpha(alpha)
+
+        screen_x = int(x - offset_x)
+        screen_y = int(y - offset_y)
+        rect = rendered.get_rect(center=(screen_x, screen_y))
+        surface.blit(rendered, rect)
     
     def clear_cache(self):
         """Clear sprite cache to free memory."""

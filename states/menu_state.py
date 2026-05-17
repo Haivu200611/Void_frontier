@@ -6,6 +6,7 @@ import pygame
 from core.state_machine import State
 from settings import *
 from systems.localization import get_localization_manager, _ as tr
+from audio.audio_manager import get_audio_manager
 
 
 class MenuState(State):
@@ -17,6 +18,8 @@ class MenuState(State):
         self.font_language = pygame.font.SysFont("segoeui", 18)
         
         self.loc_manager = get_localization_manager()
+        self.audio_manager = get_audio_manager()
+        self.audio_manager.play_music("game menu theme.mp3", fade_in=1.0)
         self.options = [
             tr("menu.play"),
             tr("menu.how_to_play"),
@@ -44,14 +47,17 @@ class MenuState(State):
             if event.type == pygame.KEYDOWN:
                 if event.key in (pygame.K_UP, pygame.K_w):
                     self.selected_index = (self.selected_index - 1) % len(self.options)
+                    self.audio_manager.play_ui_sound("button_hover.wav", volume=0.7)
                 elif event.key in (pygame.K_DOWN, pygame.K_s):
                     self.selected_index = (self.selected_index + 1) % len(self.options)
+                    self.audio_manager.play_ui_sound("button_hover.wav", volume=0.7)
                 elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
                     self.select_option()
 
             elif event.type == pygame.MOUSEMOTION:
                 idx = self._option_from_mouse(event.pos)
-                if idx is not None:
+                if idx is not None and idx != self.selected_index:
+                    self.audio_manager.play_ui_sound("button_hover.wav", volume=0.7)
                     self.selected_index = idx
 
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -61,9 +67,10 @@ class MenuState(State):
                     self.select_option()
 
     def select_option(self):
+        self.audio_manager.play_ui_sound("button_click.wav", volume=0.8)
         option_index = self.selected_index
         if option_index == 0:  # Play
-            self.engine.state_machine.change_state("Play")
+            self.engine.state_machine.change_state("Intro")
         elif option_index == 1:  # How to Play
             self.engine.state_machine.change_state("HowToPlay")
         elif option_index == 2:  # Language

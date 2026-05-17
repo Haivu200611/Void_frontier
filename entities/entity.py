@@ -92,6 +92,12 @@ class Entity:
 
         self.health -= amount
 
+        # Play damage sound for player
+        if hasattr(self, 'audio_manager') and self.audio_manager:
+            if getattr(self, '__class__', None):
+                if 'player' in getattr(self.__class__, '__name__', '').lower():
+                    self.audio_manager.play_sfx("damage_taken.wav")
+
         # Grant i-frames
         if self.hurtbox:
             self.hurtbox.grant_invincibility(self.hurtbox.default_iframes)

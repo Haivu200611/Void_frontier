@@ -17,14 +17,14 @@ class MusicManager:
         self.current_track: Optional[str] = None
         self.volume: float = 0.5
         
-        # Biome to music mapping
+        # Biome to music mapping (matches actual filenames on disk)
         self.biome_tracks = {
-            "toxic_plains": "ambient_toxic.mp3",
-            "crystal_desert": "ambient_crystal.mp3",
-            "fungal_cave": "ambient_fungal.mp3",
-            "void_ruins": "ambient_void.mp3",
-            "boss_fight": "boss_battle.mp3",
-            "menu": "menu_theme.mp3"
+            "toxic_plains": "toxic ambience.mp3",
+            "crystal_desert": "crystal cave ambience.mp3",
+            "fungal_cave": "fungal ambience.mp3",
+            "void_ruins": "void ambient.mp3",
+            "boss_fight": "boss battle music.mp3",
+            "menu": "game menu theme.mp3"
         }
         
     def play_track(self, track_name: str, loop: int = -1, fade_ms: int = 2000):

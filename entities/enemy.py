@@ -179,7 +179,8 @@ class DummyEnemy(Entity):
         if self.animation_player and self.animation_player.get_current_sprite():
             sprite = self.animation_player.get_current_sprite()
 
-        self.sprite_renderer.render_sprite(
+        self.sprite_renderer.render_sprite_to_size(
             surface, sprite, self.x, self.y,
-            offset_x, offset_y, scale=1.5, flip_x=flip_x, tint=tint
+            self.width, self.height,
+            offset_x, offset_y, flip_x=flip_x, tint=tint
         )

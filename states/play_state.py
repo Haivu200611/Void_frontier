@@ -10,6 +10,7 @@ from settings import *
 from entities.player import Player
 from entities.npc import NPC
 from entities.boss import Boss
+from entities.spaceship import Spaceship
 from entities.item_drop import HealthDrop, OxygenDrop, FoodDrop
 from entities.projectiles.projectile import ProjectilePool
 
@@ -43,6 +44,7 @@ from core.camera import Camera
 from core.screen_effects import ScreenEffects
 from particles.particle_system import ParticleSystem
 from audio.audio_manager import get_audio_manager, CombatSoundManager
+from audio.ui_audio import UIAudioManager
 from rendering.environmental_effects import EnvironmentalImmersion
 from tools.profiler import get_profiler
 from ui.hud import HUD
@@ -67,7 +69,11 @@ class PlayState(State):
         ItemDatabase.load("data/items.json")
 
         self.world_manager = WorldManager(seed="FALLEN_PLANET_SEED", world_id="toxic_plains")
-        self.player = Player(1000, 1000)
+        spawn_x, spawn_y = self.world_manager.get_spawn_position()
+        self.spaceship = Spaceship(spawn_x, spawn_y)
+        
+        # Offset player slightly so they don't spawn stuck inside the ship's 144x144 hitbox
+        self.player = Player(spawn_x + 100, spawn_y + 100)
 
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.camera.offset.x = self.player.x - WINDOW_WIDTH * 0.5
@@ -86,11 +92,19 @@ class PlayState(State):
         self.particle_system = ParticleSystem(max_particles=1000)
         self.screen_effects = ScreenEffects()
         self.audio_manager = get_audio_manager()
+        self.ui_audio = UIAudioManager(self.audio_manager)
+        
+        # Play ambient music based on biome
+        self._play_biome_music("toxic_plains")
         # Combat polish & audio
         self.combat_polish = CombatPolishSystem()
         self.recoil = RecoilEffect()
         self.combat_sounds = CombatSoundManager(self.audio_manager)
         self.environmental_immersion = EnvironmentalImmersion(WINDOW_WIDTH, WINDOW_HEIGHT)
+        
+        # Track boss music state
+        self._boss_music_active = False
+        self._last_boss_phase = {}
         self.hud = HUD()
         self.boss_healthbar = BossHealthBar()
         self.console = get_playtest_console()
@@ -105,6 +119,8 @@ class PlayState(State):
         self.combat_manager.combat_sounds = self.combat_sounds
 
         self.player.inventory = self.inventory
+        self.player.combat_sounds = self.combat_sounds
+        self.player.audio_manager = self.audio_manager
 
         self.hazard_manager = HazardManager(self.world_manager.seed)
         self.portal_manager = PortalManager()
@@ -208,8 +224,24 @@ class PlayState(State):
                     self.engine.state_machine.change_state("Menu")
                 elif event.key == pygame.K_e:
                     self.inventory_open = not self.inventory_open
+                    # Play menu open/close SFX
+                    try:
+                        if self.inventory_open:
+                            self.ui_audio.play_menu_open()
+                        else:
+                            self.ui_audio.play_menu_close()
+                    except Exception:
+                        pass
                 elif event.key == pygame.K_c:
                     self.crafting_open = not self.crafting_open
+                    # Play menu open/close SFX
+                    try:
+                        if self.crafting_open:
+                            self.ui_audio.play_menu_open()
+                        else:
+                            self.ui_audio.play_menu_close()
+                    except Exception:
+                        pass
                 elif event.key == pygame.K_f:
                     self.pending_portal_interact = True
                 elif event.key == pygame.K_r:
@@ -227,7 +259,11 @@ class PlayState(State):
                 elif event.key == pygame.K_RETURN and self.crafting_open:
                     self._craft_selected_recipe()
                 elif event.key == pygame.K_g:
-                    self.inventory.equip_from_slot(self.inventory.selected_hotbar, "tool")
+                    if self.inventory.equip_from_slot(self.inventory.selected_hotbar, "tool"):
+                        try:
+                            self.ui_audio.play_equip()
+                        except Exception:
+                            pass
                 elif event.key == pygame.K_q and self.crafting_open:
                     self._cycle_recipe_category(-1)
                 elif event.key == pygame.K_w and self.crafting_open:
@@ -304,6 +340,7 @@ class PlayState(State):
 
         self.boss_manager.update(scaled_dt)
         self.world_event_manager.update(scaled_dt)
+        self.portal_manager.update(scaled_dt)
 
         if not any_auto:
             self.player.update(scaled_dt, self.camera, self.projectile_pool)
@@ -353,6 +390,9 @@ class PlayState(State):
         self.projectile_pool.update(scaled_dt)
 
         active_obstacles = self.world_manager.get_obstacles_near(self.player.x, self.player.y)
+        if self.world_manager.current_world_id == "toxic_plains":
+            active_obstacles.append(self.spaceship)
+
         CollisionSystem.handle_static_collisions(self.player, active_obstacles)
         for enemy in self.enemies:
             CollisionSystem.handle_static_collisions(enemy, active_obstacles)
@@ -380,7 +420,9 @@ class PlayState(State):
                 except Exception:
                     pass
                 try:
-                    self.combat_sounds.play_hit_sound("normal")
+                    # Determine hit type based on damage
+                    hit_type = "heavy" if getattr(projectile, 'damage', 0) >= 25 else "normal"
+                    self.combat_sounds.play_hit_sound(hit_type)
                 except Exception:
                     pass
 
@@ -441,9 +483,46 @@ class PlayState(State):
             if not self.boss_healthbar.active:
                 self.boss_healthbar.show(getattr(boss, 'name', 'BOSS'), boss.max_health)
             self.boss_healthbar.update(scaled_dt, boss.health)
+            
+            # Boss battle music management
+            if not self._boss_music_active:
+                self._boss_music_active = True
+                try:
+                    self.audio_manager.play_music("boss battle music.mp3", fade_in=1.0)
+                except Exception:
+                    pass
+            
+            # Boss phase transition SFX
+            boss_id = id(boss)
+            current_phase = getattr(boss, 'phase', 1)
+            if boss_id in self._last_boss_phase:
+                if self._last_boss_phase[boss_id] != current_phase:
+                    try:
+                        self.combat_sounds.play_boss_sound("phase")
+                    except Exception:
+                        pass
+            self._last_boss_phase[boss_id] = current_phase
+            
+            # Boss attack SFX
+            boss_state = getattr(boss, 'state', 'idle')
+            if boss_state not in ('idle', 'IDLE', None) and boss_state != getattr(boss, '_last_sfx_state', None):
+                try:
+                    self.combat_sounds.play_boss_sound("attack")
+                except Exception:
+                    pass
+            boss._last_sfx_state = boss_state
         else:
             self.boss_healthbar.hide()
             self.boss_healthbar.update(scaled_dt, 0)
+            
+            # Restore biome music when boss is gone
+            if self._boss_music_active:
+                self._boss_music_active = False
+                self._last_boss_phase.clear()
+                try:
+                    self._play_biome_music(self.world_manager.current_world_id)
+                except Exception:
+                    pass
 
         self.telegraphs = [t for t in self.telegraphs if t.update(scaled_dt)]
 
@@ -457,11 +536,27 @@ class PlayState(State):
         self.camera.update(self.player, scaled_dt)
 
         if self.player.is_dead:
+            # Player death SFX
+            try:
+                self.combat_sounds.play_death_sound("player")
+            except Exception:
+                pass
             self.engine.state_machine.change_state(
                 "GameOver",
                 world=self.world_manager.current_world_id,
                 reason="Life support failed. Mission aborted.",
             )
+
+    def _play_biome_music(self, biome_id: str) -> None:
+        """Play appropriate ambient music for the current biome."""
+        music_map = {
+            "toxic_plains": "toxic ambience.mp3",
+            "crystal_desert": "crystal cave ambience.mp3",
+            "fungal_cave": "fungal ambience.mp3",
+            "void_ruins": "void ambient.mp3",
+        }
+        music_file = music_map.get(biome_id, "toxic ambience.mp3")
+        self.audio_manager.play_music(music_file, fade_in=1.0)
 
     def render(self, surface: pygame.Surface) -> None:
         surface.fill(COLOR_BG)
@@ -484,6 +579,9 @@ class PlayState(State):
             self.player.y,
             debug_mode=self.engine.debug_mode,
         )
+        
+        if self.world_manager.current_world_id == "toxic_plains":
+            self.spaceship.render(surface, ox, oy)
 
         self.hazard_manager.render(surface, ox, oy, self.visible_hazards, debug=self.engine.debug_mode)
 
@@ -632,6 +730,11 @@ class PlayState(State):
         if self.boss_manager.active_boss:
             self.bosses.append(self.boss_manager.active_boss)
             self.current_boss_spawned = True
+            # Boss spawn SFX
+            try:
+                self.combat_sounds.play_boss_sound("spawn")
+            except Exception:
+                pass
 
     def _setup_portals_for_world(self, world_id: str) -> None:
         portals: list[Portal] = []
@@ -738,6 +841,16 @@ class PlayState(State):
                 # Keep progression artifacts in sync with progression.json reward ids.
                 if reward and reward.startswith("artifact_"):
                     self.progression_manager.add_artifact(reward)
+            
+            # Boss death SFX + level up fanfare
+            try:
+                self.combat_sounds.play_death_sound("boss")
+            except Exception:
+                pass
+            try:
+                self.ui_audio.play_level_up()
+            except Exception:
+                pass
                     
             # Spawn progression portal at death location
             death_x, death_y = (self.player.x + 50, self.player.y + 50)
@@ -842,13 +955,14 @@ class PlayState(State):
     def _interact(self) -> None:
         import math
         # Check Endgame Ship Interaction
+        ship_x, ship_y = self.spaceship.x, self.spaceship.y
         if self.world_manager.current_world_id == "toxic_plains":
-            if math.hypot(self.player.x - 1000, self.player.y - 1000) < 150:
+            if math.hypot(self.player.x - ship_x, self.player.y - ship_y) < 150:
                 if self.inventory.has_item("quest_ship_repair_kit", 1):
                     self.ship_repair_prompt_active = True
-                    self._set_ui_message("ORION-7 REPAIRED? [Y/N]", duration=10.0)
+                    self._set_ui_message("Sửa chữa tàu ORION-7? [Y/N]", duration=10.0)
                 else:
-                    self._set_ui_message("ORION-7 is critically damaged. Needs a Ship Repair Kit.")
+                    self._set_ui_message("Tàu ORION-7 bị hỏng. Cần đổi Mảnh Bí Ẩn lấy Ship Repair Kit từ Thương Nhân ở World 4.")
                 return
 
         # Check NPC interaction
@@ -923,8 +1037,9 @@ class PlayState(State):
         self.world_manager.transition_world(target_world)
         self.hazard_manager = HazardManager(self.world_manager.seed)
 
-        self.player.x = 1000
-        self.player.y = 1000
+        spawn_x, spawn_y = self.world_manager.get_spawn_position()
+        self.player.x = spawn_x
+        self.player.y = spawn_y
         self.player.rect.center = (int(self.player.x), int(self.player.y))
         self.player.hitbox.update(self.player.x, self.player.y)
 
@@ -933,6 +1048,10 @@ class PlayState(State):
 
         self.camera.offset.x = self.player.x - WINDOW_WIDTH * 0.5
         self.camera.offset.y = self.player.y - WINDOW_HEIGHT * 0.5
+
+        # Play new biome music
+        self._play_biome_music(target_world)
+        self._boss_music_active = False
 
         self._set_ui_message(f"Transitioned to {target_world}")
 
@@ -987,6 +1106,11 @@ class PlayState(State):
         if consumed:
             self.consumable_cooldowns[item.id] = float(effects.get("cooldown", 1.5))
             self._set_ui_message(f"Used {item.name}")
+            # Play pickup/use SFX
+            try:
+                self.ui_audio.play_pick_up()
+            except Exception:
+                pass
 
     def _craft_selected_recipe(self) -> None:
         recipes = self._get_active_recipes()
@@ -998,6 +1122,11 @@ class PlayState(State):
         ok, info = self.crafting.craft(recipe.recipe_id, self.inventory)
         if ok:
             self._set_ui_message(f"Crafted {recipe.name}")
+            # Play equip/craft SFX
+            try:
+                self.ui_audio.play_equip()
+            except Exception:
+                pass
         else:
             self._set_ui_message(info)
 
@@ -1401,6 +1530,15 @@ class PlayState(State):
     def _set_ui_message(self, text: str, duration: float = 1.8) -> None:
         self.ui_message = text
         self.ui_message_timer = duration
+        # Play notification SFX for important messages
+        try:
+            important_keywords = ["Boss", "BOSS", "defeated", "Acquired", "Upgraded", 
+                                 "ARRIVED", "unlocked", "appeared", "REPAIRED", "Reward",
+                                 "Transitioned", "Received"]
+            if any(kw in text for kw in important_keywords):
+                self.ui_audio.play_notification()
+        except Exception:
+            pass
 
     def _tick_ui(self, dt: float) -> None:
         if self.ui_message_timer > 0:

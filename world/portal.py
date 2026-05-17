@@ -1,6 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import math
+import os
+import time
 from dataclasses import dataclass
 
 import pygame
@@ -11,6 +13,69 @@ class PortalRequirement:
     required_item: str | None = None
     required_count: int = 0
     required_flag: str | None = None
+
+
+class PortalAnimation:
+    """Handles animated portal sprite from a sequence of frames."""
+    
+    _shared_frames: list[pygame.Surface] | None = None
+    _shared_frames_locked: list[pygame.Surface] | None = None
+    
+    @classmethod
+    def _load_shared_frames(cls) -> None:
+        """Load portal animation frames once (shared across all portals)."""
+        if cls._shared_frames is not None:
+            return
+        
+        portal_dir = os.path.join("assets", "images", "portal")
+        cls._shared_frames = []
+        cls._shared_frames_locked = []
+        
+        # Load frames in order: portal_01.png .. portal_07.png
+        frame_files = sorted([
+            f for f in os.listdir(portal_dir)
+            if f.lower().endswith(".png") and f.startswith("portal_")
+        ])
+        
+        for fname in frame_files:
+            path = os.path.join(portal_dir, fname)
+            try:
+                surf = pygame.image.load(path).convert_alpha()
+                cls._shared_frames.append(surf)
+                
+                # Create a desaturated/dimmed version for locked portals
+                locked = surf.copy()
+                dark_overlay = pygame.Surface(locked.get_size(), pygame.SRCALPHA)
+                dark_overlay.fill((0, 0, 0, 140))
+                locked.blit(dark_overlay, (0, 0))
+                cls._shared_frames_locked.append(locked)
+            except Exception as e:
+                print(f"Failed to load portal frame {path}: {e}")
+        
+        if not cls._shared_frames:
+            print("No portal frames loaded!")
+    
+    def __init__(self):
+        self._load_shared_frames()
+        self.frame_index: float = 0.0
+        self.frame_speed: float = 8.0  # frames per second
+        self.scale: float = 2.0
+    
+    def update(self, dt: float) -> None:
+        """Advance animation frame."""
+        if not self._shared_frames:
+            return
+        self.frame_index += self.frame_speed * dt
+        if self.frame_index >= len(self._shared_frames):
+            self.frame_index -= len(self._shared_frames)
+    
+    def get_frame(self, unlocked: bool) -> pygame.Surface | None:
+        """Get the current animation frame."""
+        frames = self._shared_frames if unlocked else self._shared_frames_locked
+        if not frames:
+            return None
+        idx = int(self.frame_index) % len(frames)
+        return frames[idx]
 
 
 class Portal:
@@ -31,6 +96,9 @@ class Portal:
         self.radius = 32
         self.is_unlocked = False
         self.is_active = False
+        
+        # Animation
+        self.anim = PortalAnimation()
 
     def distance_to(self, x: float, y: float) -> float:
         return math.hypot(self.x - x, self.y - y)
@@ -70,17 +138,45 @@ class Portal:
         sx = int(self.x - offset_x)
         sy = int(self.y - offset_y)
         
-        # Animation: Pulsing radius
-        import math, time
-        pulse = math.sin(time.time() * 3) * 5
-        current_radius = self.radius + pulse
+        # Get animated sprite frame
+        frame = self.anim.get_frame(self.is_unlocked)
         
-        color = (70, 220, 240) if self.is_unlocked else (120, 120, 140)
-        pygame.draw.circle(surface, color, (sx, sy), int(current_radius), 3)
+        if frame is not None:
+            # Scale the frame
+            scale = self.anim.scale
+            # Add pulsing scale effect for unlocked portals
+            if self.is_unlocked:
+                pulse = math.sin(time.time() * 3) * 0.1
+                scale += pulse
+            
+            fw = int(frame.get_width() * scale)
+            fh = int(frame.get_height() * scale)
+            scaled = pygame.transform.smoothscale(frame, (fw, fh))
+            
+            # Center on portal position
+            surface.blit(scaled, (sx - fw // 2, sy - fh // 2))
+        else:
+            # Fallback: draw circle if no sprites loaded
+            pulse = math.sin(time.time() * 3) * 5
+            current_radius = self.radius + pulse
+            color = (70, 220, 240) if self.is_unlocked else (120, 120, 140)
+            pygame.draw.circle(surface, color, (sx, sy), int(current_radius), 3)
+            if self.is_unlocked:
+                pygame.draw.circle(surface, (100, 255, 255), (sx, sy), int(current_radius * 0.6), 1)
         
+        # Target world label
+        font = pygame.font.SysFont("segoeui", 14)
+        label_color = (180, 230, 255) if self.is_unlocked else (100, 100, 120)
+        label = font.render(self.target_world.replace("_", " ").title(), True, label_color)
+        label_rect = label.get_rect(center=(sx, sy + 50))
+        surface.blit(label, label_rect)
+        
+        # Interaction hint when unlocked
         if self.is_unlocked:
-            # Inner glow
-            pygame.draw.circle(surface, (100, 255, 255), (sx, sy), int(current_radius * 0.6), 1)
+            hint_font = pygame.font.SysFont("segoeui", 12)
+            hint = hint_font.render("[F] Enter", True, (150, 200, 230))
+            hint_rect = hint.get_rect(center=(sx, sy + 65))
+            surface.blit(hint, hint_rect)
             
         if debug:
             pygame.draw.circle(surface, (220, 220, 255), (sx, sy), self.radius + 20, 1)
@@ -102,6 +198,11 @@ class PortalManager:
                 nearest = portal
                 nearest_dist = dist
         return nearest
+
+    def update(self, dt: float) -> None:
+        """Update all portal animations."""
+        for portal in self.portals:
+            portal.anim.update(dt)
 
     def render(self, surface: pygame.Surface, offset_x: int, offset_y: int, debug: bool) -> None:
         for portal in self.portals:

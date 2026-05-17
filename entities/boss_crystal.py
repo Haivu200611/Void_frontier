@@ -25,8 +25,11 @@ class CrystalTitan(Boss):
             return
             
         tint = (200, 255, 255) if self.phase == 2 else None
-        self.sprite_renderer.render_sprite(surface, "boss", self.x, self.y, offset_x, offset_y, 
-                                         scale=4.0, tint=tint)
+        self.sprite_renderer.render_sprite_to_size(
+            surface, "boss", self.x, self.y,
+            self.width, self.height,
+            offset_x, offset_y, tint=tint
+        )
 
     def update(self, dt: float, player=None, projectile_pool=None) -> None:
         super().update(dt, player, projectile_pool)

@@ -24,6 +24,44 @@ class MapGenerator:
         """Generates a completely empty/flat grid."""
         return [[0 for _ in range(self.width)] for _ in range(self.height)]
 
+    def generate_flat_with_border(self, border_edges: set[str]) -> list[list[int]]:
+        """Generates a flat grid with wall borders on specified edges."""
+        grid = self.generate_flat()
+        self._apply_border_walls(grid, border_edges)
+        return grid
+
+    def generate_caves_with_border(self, border_edges: set[str],
+                                    fill_prob: float = 0.25,
+                                    iterations: int = 4) -> list[list[int]]:
+        """Generates caves with reduced obstacle density and wall borders."""
+        grid = self.generate_caves(fill_prob=fill_prob, iterations=iterations)
+        self._apply_border_walls(grid, border_edges)
+        return grid
+
+    def generate_void(self) -> list[list[int]]:
+        """Generates a fully filled grid (impassable void)."""
+        return [[1 for _ in range(self.width)] for _ in range(self.height)]
+
+    def _apply_border_walls(self, grid: list[list[int]], border_edges: set[str],
+                            thickness: int = 3) -> None:
+        """Fill wall tiles along specified edges of the grid."""
+        if "top" in border_edges:
+            for y in range(thickness):
+                for x in range(self.width):
+                    grid[y][x] = 1
+        if "bottom" in border_edges:
+            for y in range(self.height - thickness, self.height):
+                for x in range(self.width):
+                    grid[y][x] = 1
+        if "left" in border_edges:
+            for y in range(self.height):
+                for x in range(thickness):
+                    grid[y][x] = 1
+        if "right" in border_edges:
+            for y in range(self.height):
+                for x in range(self.width - thickness, self.width):
+                    grid[y][x] = 1
+
     def _smooth_step(self, grid: list[list[int]]) -> list[list[int]]:
         new_grid = [[0 for _ in range(self.width)] for _ in range(self.height)]
         for y in range(self.height):

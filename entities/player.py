@@ -101,6 +101,10 @@ class Player(Entity):
         self.is_attacking = True
         self.attack_timer = self.attack_cooldown
         self.attack_box.activate()
+        
+        # Play attack sound
+        if hasattr(self, 'combat_sounds') and self.combat_sounds:
+            self.combat_sounds.play_attack_sound("melee")
 
         world_mx, world_my = self._mouse_world(camera)
         dx = world_mx - self.x
@@ -132,6 +136,11 @@ class Player(Entity):
                     cool = stats.get("cooldown", cool)
                     life = stats.get("lifetime", life)
                     clr = tuple(stats.get("color", clr))
+
+        # Play projectile attack sound (heavy for high-damage weapons)
+        if hasattr(self, 'combat_sounds') and self.combat_sounds:
+            attack_sfx_type = "heavy" if dmg >= 25 else "projectile"
+            self.combat_sounds.play_attack_sound(attack_sfx_type)
 
         self.shoot_timer = cool
         self.shoot_anim_timer = self.shoot_anim_duration
@@ -253,8 +262,11 @@ class Player(Entity):
         if sprite is None:
             sprite = "player"
 
-        self.sprite_renderer.render_sprite(surface, sprite, self.x, self.y, offset_x, offset_y, 
-                                         scale=1.5, flip_x=flip_x)
+        self.sprite_renderer.render_sprite_to_size(
+            surface, sprite, self.x, self.y,
+            self.width, self.height,
+            offset_x, offset_y, flip_x=flip_x
+        )
 
         render_rect = self.rect.move(-offset_x, -offset_y)
         if self._camera:

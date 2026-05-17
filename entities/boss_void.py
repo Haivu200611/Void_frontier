@@ -26,11 +26,15 @@ class VoidGuardian(Boss):
             
         import time
         pulse = math.sin(time.time() * 5) * 0.1
-        current_scale = 4.0 + pulse
+        pulse_w = self.width * (1.0 + pulse)
+        pulse_h = self.height * (1.0 + pulse)
         
         tint = (255, 100, 255) if self.phase == 2 else None
-        self.sprite_renderer.render_sprite(surface, "boss", self.x, self.y, offset_x, offset_y, 
-                                         scale=current_scale, tint=tint)
+        self.sprite_renderer.render_sprite_to_size(
+            surface, "boss", self.x, self.y,
+            pulse_w, pulse_h,
+            offset_x, offset_y, tint=tint
+        )
 
     def update(self, dt: float, player=None, projectile_pool=None) -> None:
         super().update(dt, player, projectile_pool)

@@ -86,9 +86,10 @@ class Boss(DummyEnemy):
             self.sprite_renderer.load_sprite("boss", boss_img)
 
         tint = (255, 150, 150) if self._flash_timer > 0 else None
-        self.sprite_renderer.render_sprite(
+        self.sprite_renderer.render_sprite_to_size(
             surface, "boss", self.x, self.y,
-            offset_x, offset_y, scale=4.0, tint=tint
+            self.width, self.height,
+            offset_x, offset_y, tint=tint
         )
 
         # Name tag
