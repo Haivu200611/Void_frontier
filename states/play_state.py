@@ -1014,7 +1014,7 @@ class PlayState(State):
         if self.ship_repair_prompt_active:
             if choice:
                 self._set_ui_message("ORION-7 REPAIRED! PREPARING FOR LAUNCH...", duration=5.0)
-                self.engine.state_machine.change_state("Ending")
+                self.engine.state_machine.change_state("Outtro")
             else:
                 self._set_ui_message("Repair cancelled.")
             self.ship_repair_prompt_active = False
@@ -1288,7 +1288,7 @@ class PlayState(State):
 
         for portal in self.portal_manager.portals:
             px = int(portal.x - ox)
-            py = int(portal.y - oy)
+            cho tôi biết các npc phải đổi gì với họ để lấy vũ khí nâng cấp và ở các world 1, 2, 3, 4 thì đào được gìpy = int(portal.y - oy)
             pygame.draw.circle(surface, (220, 220, 255), (px, py), 40, 1)
         
         # AI debug visualization

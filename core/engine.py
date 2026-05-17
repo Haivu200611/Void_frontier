@@ -9,6 +9,7 @@ from states.ending_state import EndingState
 from states.game_over_state import GameOverState
 from states.language_menu_state import LanguageMenuState
 from states.intro_state import IntroState
+from states.outtro_state import OuttroState
 
 class GameEngine:
     def __init__(self):
@@ -37,6 +38,7 @@ class GameEngine:
         self.state_machine.add_state("HowToPlay", HowToPlayState)
         self.state_machine.add_state("LanguageMenu", LanguageMenuState)
         self.state_machine.add_state("Ending", EndingState)
+        self.state_machine.add_state("Outtro", OuttroState)
         self.state_machine.add_state("GameOver", GameOverState)
         
     def handle_events(self):

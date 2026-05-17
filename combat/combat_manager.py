@@ -57,6 +57,8 @@ class CombatManager:
         # Set hit flag for projectiles
         if hasattr(attacker, 'hit_something'):
             attacker.hit_something = True
+            if hasattr(attacker, 'deactivate'):
+                attacker.deactivate()
 
         # Combat polish feedback (visuals, freeze frames)
         try:
