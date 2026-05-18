@@ -90,7 +90,7 @@ class VoidGuardian(Boss):
                     angle = math.atan2(dy, dx)
                     projectile_pool.spawn(self.x, self.y, 
                                         math.cos(angle), math.sin(angle), 
-                                        800, 1.0, 12, 
+                                        800, 1.0, 15, 
                                         (200, 0, 255), 4, "enemy")
             if self.state_timer <= 0:
                 self.state = "idle"

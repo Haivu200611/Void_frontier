@@ -86,7 +86,7 @@ class ToxicWorm(Boss):
             if self.state_timer <= 0:
                 # Burst on pop up
                 if projectile_pool:
-                    count = 16 if self.phase == 1 else 24
+                    count = 24 if self.phase == 1 else 36
                     for i in range(count):
                         angle = (i / count) * math.tau
                         projectile_pool.spawn(self.x, self.y, 
@@ -106,7 +106,7 @@ class ToxicWorm(Boss):
                     dist = math.hypot(dx, dy)
                     if dist > 0:
                         # Spit multiple projectiles that slow down and stay
-                        count = 3 if self.phase == 1 else 5
+                        count = 5 if self.phase == 1 else 8
                         for i in range(count):
                             angle = math.atan2(dy, dx) + random.uniform(-0.3, 0.3)
                             projectile_pool.spawn(self.x, self.y, 
